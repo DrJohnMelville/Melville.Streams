@@ -1,0 +1,19 @@
+﻿<Project>
+    <PropertyGroup>
+        <TargetFramework>net11.0</TargetFramework>
+        <Version>0.1.1-preview</Version>
+        <LangVersion>15</LangVersion>
+        <Authors>John Melville, MS, MD</Authors>
+        <Company>Melville Computing</Company>
+        <Copyright>2026 John Melville, MS, MD</Copyright>
+        <Nullable>enable</Nullable>
+        <AnalysisLevel>latest</AnalysisLevel>
+        <RepositoryUrl>https://github.com/DrJohnMelville/Melville.Streams</RepositoryUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    </PropertyGroup>
+
+	<Target Name="CopyPackage" AfterTargets="Pack">
+		<Copy SourceFiles="$(OutputPath)..\$(PackageId).$(PackageVersion).nupkg"
+		      DestinationFolder="$(SolutionDir)..\..\TempNuget\" />
+	</Target>
+</Project>

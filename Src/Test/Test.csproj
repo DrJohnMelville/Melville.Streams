@@ -1,0 +1,7 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="TUnit.Engine" />
+    <PackageReference Include="TUnit.Mocks" />
+  </ItemGroup>
+</Project>
