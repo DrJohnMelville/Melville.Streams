@@ -1,19 +1,23 @@
 ﻿[global::System.Runtime.CompilerServices.UnionAttribute]
-public readonly partial struct global::NS.A.B.IA_IB:
-global::NS.A.B.IA, global::NS.A.B.IB
+public readonly partial struct global::IA_IB:
+global::IA, global::IB
 {
     private readonly {GlobalName(first)} _value;
     public {symbol.Name} ({GlobalName(first)} value) 
     {
         _value = value;
         global::Melville.IntersectionTypes.TypeVerifier.VerifyTypes(_value
-            , typeof(global::NS.A.B.IB)
+            , typeof(global::IB)
         );
     }
 
-    public global::NS.A.B.IA AsIA() => 
-        (global::NS.A.B.IA)_value;
+    public global::IA AsIA() => 
+        (global::IA)_value;
+    public int A(
+        ref int a) =>
+        AsIA().A(ref a);
 
-    public global::NS.A.B.IB AsIB() => 
-        (global::NS.A.B.IB)_value;
+
+    public global::IB AsIB() => 
+        (global::IB)_value;
 }

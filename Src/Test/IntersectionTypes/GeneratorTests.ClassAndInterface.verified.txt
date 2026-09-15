@@ -1,6 +1,6 @@
 ﻿[global::System.Runtime.CompilerServices.UnionAttribute]
 public readonly partial struct global::NS.A.B.IA_IB:
-global::NS.A.B.IA, global::NS.A.B.IB
+global::NS.A.B.IB
 {
     private readonly {GlobalName(first)} _value;
     public {symbol.Name} ({GlobalName(first)} value) 
@@ -13,6 +13,8 @@ global::NS.A.B.IA, global::NS.A.B.IB
 
     public global::NS.A.B.IA AsIA() => 
         (global::NS.A.B.IA)_value;
+    public static implicit global::NS.A.B.IA(global::NS.A.B.IA_IB i) => 
+        i.AsIA
 
     public global::NS.A.B.IB AsIB() => 
         (global::NS.A.B.IB)_value;
