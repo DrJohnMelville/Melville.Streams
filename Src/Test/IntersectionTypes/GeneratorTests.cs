@@ -271,8 +271,18 @@ public class GeneratorTests
         public readonly partial struct IA_IB {}
         """");
 
+    [Test] public Task RefProperty() => SuccessText(""""
+        using Melville.IntersectionTypes;
+                
+        public readonly enum S {A, B, C, D};
+        public interface IA { ref int I {get;}
+        public interface IB {}
+        
+        [IntersectionType(typeof(IA), typeof(IB))]
+        public readonly partial struct IA_IB {}
+        """");
+
 
 
     // ref returning parameters
-    // optional parameters
 }

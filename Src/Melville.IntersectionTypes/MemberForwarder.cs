@@ -45,26 +45,31 @@ internal readonly struct MemberForwarderFactory(string targetName)
     {
         StringBuilder sb = new();
         sb.AppendLine($$"""{{name}} {""");
-        var tgm = ps.GetMethod;
+       var refPrefix = ComputeRefPrefix(ps);
 
         bool generatedArm = false;
 
         if (ps.GetMethod is { DeclaredAccessibility: Accessibility.Public } gm)
         {
-            sb.AppendLine($"        get => As{targetName}(){refCall};");
+            sb.AppendLine($"        get => {refPrefix}As{targetName}(){refCall};");
             generatedArm = true;
         }
-        if (ps.SetMethod is { DeclaredAccessibility: Accessibility.Public,
-                              IsInitOnly: false} sm)
+        if (ps.SetMethod is
+            {
+                DeclaredAccessibility: Accessibility.Public,
+                IsInitOnly: false
+            } sm)
         {
             sb.AppendLine($"        set => As{targetName}(){refCall} = value;");
             generatedArm = true;
         }
         sb.AppendLine("    }");
 
-        return generatedArm?new(ps.Type.GlobalName, sb.ToString(), ps.Name, ""): null;
+        return generatedArm ? new(refPrefix+ps.Type.GlobalName, sb.ToString(), ps.Name, "") : null;
 
     }
+
+    private string ComputeRefPrefix(IPropertySymbol ps) => ps.RefKind is RefKind.Ref ? "ref " : "";
 
     private MemberForwarder CreateMethod(IMethodSymbol ms)
     {
@@ -79,7 +84,8 @@ internal readonly struct MemberForwarderFactory(string targetName)
 
         
 
-        return new MemberForwarder(RefParameterPrefix(ms.RefKind) + ms.ReturnType.GlobalName, code.ToString(), ms.Name, items);
+        return new MemberForwarder(
+            RefParameterPrefix(ms.RefKind) + ms.ReturnType.GlobalName, code.ToString(), ms.Name, items);
     }
 
 
@@ -109,7 +115,6 @@ internal readonly struct MemberForwarderFactory(string targetName)
     {
         if (parameter.HasExplicitDefaultValue)
         {
-
             code.Append($" = {CreateConstant(parameter)}");
         }
     }
