@@ -229,6 +229,48 @@ public class GeneratorTests
         public readonly partial struct IA_IB {}
         """);
 
+    [Test] public Task ParameterWithDefaultValue() => SuccessText("""
+        using Melville.IntersectionTypes;
+                
+        public interface IA { public void A(int i = 10);}
+        public interface IB {}
+        
+        [IntersectionType(typeof(IA), typeof(IB))]
+        public readonly partial struct IA_IB {}
+        """);
+
+    [Test] public Task ParameterWithDefaultStringValue() => SuccessText(""""
+        using Melville.IntersectionTypes;
+                
+        public interface IA { public void A(string i = "hel\r\nlo");}
+        public interface IB {}
+        
+        [IntersectionType(typeof(IA), typeof(IB))]
+        public readonly partial struct IA_IB {}
+        """");
+
+    [Test] public Task ParameterWithDefaultStructValue() => SuccessText(""""
+        using Melville.IntersectionTypes;
+                
+        public readonly struct S (int i);
+        public interface IA { public void A(S i = default);}
+        public interface IB {}
+        
+        [IntersectionType(typeof(IA), typeof(IB))]
+        public readonly partial struct IA_IB {}
+        """");
+
+    [Test] public Task ParameterWithDefaultEnumValue() => SuccessText(""""
+        using Melville.IntersectionTypes;
+                
+        public readonly enum S {A, B, C, D};
+        public interface IA { public void A(S i = S.C);}
+        public interface IB {}
+        
+        [IntersectionType(typeof(IA), typeof(IB))]
+        public readonly partial struct IA_IB {}
+        """");
+
 
 
     // ref returning parameters

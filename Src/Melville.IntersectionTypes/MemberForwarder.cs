@@ -1,8 +1,10 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 
 namespace Melville.IntersectionTypes;
@@ -92,6 +94,8 @@ internal readonly struct MemberForwarderFactory(string targetName)
             code.AppendLine(delim);
             code.Append($"        {RefParameterPrefix(parameter.RefKind)}{parameter.Type.GlobalName} {parameter.Name}");
 
+            TryAddDefaultValue(code, parameter);
+
             items.Append(delim);
             items.Append($"{RefArgumentPrefix(parameter.RefKind)}{parameter.Name}");
 
@@ -100,6 +104,27 @@ internal readonly struct MemberForwarderFactory(string targetName)
 
         return items.ToString();
     }
+
+    private void TryAddDefaultValue(StringBuilder code, IParameterSymbol parameter)
+    {
+        if (parameter.HasExplicitDefaultValue)
+        {
+
+            code.Append($" = {CreateConstant(parameter)}");
+        }
+    }
+
+    public string CreateConstant(IParameterSymbol value) => value.ExplicitDefaultValue switch
+    {
+        null => "default",
+        string s => SymbolDisplay.FormatLiteral(s, true),
+        char c => SymbolDisplay.FormatLiteral(c,  true),
+        var e when value.Type is INamedTypeSymbol { TypeKind : TypeKind.Enum } enumType =>
+            $"({enumType.GlobalName}) {e}",
+        var i => i.ToString()
+
+    };
+
     private string RefParameterPrefix(RefKind refKind) => refKind switch
     {
         RefKind.None => "",
