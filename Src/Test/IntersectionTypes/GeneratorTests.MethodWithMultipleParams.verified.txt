@@ -13,6 +13,9 @@ global::IA, global::IB
 
     public global::IA AsIA() => 
         (global::IA)_value;
+
+    public global::IB AsIB() => 
+        (global::IB)_value;
     public int A(
         int a,
         string b,
@@ -20,7 +23,4 @@ global::IA, global::IB
         global::IB veryLongVariableName) =>
         AsIA().A(a,b,c,veryLongVariableName);
 
-
-    public global::IB AsIB() => 
-        (global::IB)_value;
 }

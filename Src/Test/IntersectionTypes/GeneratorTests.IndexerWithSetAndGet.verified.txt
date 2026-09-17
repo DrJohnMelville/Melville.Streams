@@ -13,13 +13,13 @@ global::IA, global::IB
 
     public global::IA AsIA() => 
         (global::IA)_value;
+
+    public global::IB AsIB() => 
+        (global::IB)_value;
     public int this[
         int i] {
         get => AsIA()[i];
         set => AsIA()[i] = value;
     }
 
-
-    public global::IB AsIB() => 
-        (global::IB)_value;
 }

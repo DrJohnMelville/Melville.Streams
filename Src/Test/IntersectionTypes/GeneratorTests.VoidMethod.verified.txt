@@ -13,10 +13,10 @@ global::IA, global::IB
 
     public global::IA AsIA() => 
         (global::IA)_value;
-    public void A() =>
-        AsIA().A();
-
 
     public global::IB AsIB() => 
         (global::IB)_value;
+    public void A() =>
+        AsIA().A();
+
 }

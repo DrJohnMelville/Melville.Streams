@@ -6,171 +6,44 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
+using System.Xml.Linq;
 
 namespace Melville.IntersectionTypes;
 
 public class MemberForwarder(
-    string returnType, 
-    string body, 
+    string returnType,
+    string body,
     string name,
-    string parameterTypes)
+    string? parameterTypes,
+    string parentType) 
 {
+    private string name = name;
+    private string parameterTypes = parameterTypes;
+
     public void WriteImplicitForwarder(StringBuilder sb)
     {
         sb.AppendLine($"    public {returnType} {body}");
     }
-}
 
-internal readonly struct MemberForwarderFactory(string targetName)
-{
-    public MemberForwarder? Create(ISymbol symbol) => symbol switch
+    public void WriteExplicitForwarder(StringBuilder sb)
     {
-        { DeclaredAccessibility : not Accessibility.Public} => null,
-        { IsStatic: true} => null,
-        IPropertySymbol { IsIndexer: true } ps => CreateIndexer(ps),
-        IPropertySymbol ps => CreateProperty(ps, ps.Name, $".{ps.Name}"),
-        IEventSymbol es => CreateEvent(es),
-        IMethodSymbol ms => CreateMethod(ms),
-        _ => null
-    };
-
-    private MemberForwarder? CreateIndexer(IPropertySymbol ps)
-    {
-        StringBuilder parameters = new();
-        var arguments = ProcessParameterList(ps.Parameters, parameters); 
-        return CreateProperty(ps, $"this[{parameters.ToString()}]", $"[{arguments}]");
+        sb.AppendLine($"    {returnType} {parentType}.{body}");
     }
 
-    private MemberForwarder? CreateProperty (IPropertySymbol ps, string name, string refCall)
+    public static IEqualityComparer<MemberForwarder> Comparer{ get; } = new SameMethod();
+
+    private class SameMethod : IEqualityComparer<MemberForwarder>
     {
-        StringBuilder sb = new();
-        sb.AppendLine($$"""{{name}} {""");
-       var refPrefix = ComputeRefPrefix(ps);
-
-        bool generatedArm = false;
-
-        if (ps.GetMethod is { DeclaredAccessibility: Accessibility.Public } gm)
+        public bool Equals(MemberForwarder x, MemberForwarder y)
         {
-            sb.AppendLine($"        get => {refPrefix}As{targetName}(){refCall};");
-            generatedArm = true;
-        }
-        if (ps.SetMethod is
+            if (!x.name.Equals(y.name, StringComparison.Ordinal)) return false;
+            return (x.parameterTypes, y.parameterTypes) switch
             {
-                DeclaredAccessibility: Accessibility.Public,
-                IsInitOnly: false
-            } sm)
-        {
-            sb.AppendLine($"        set => As{targetName}(){refCall} = value;");
-            generatedArm = true;
-        }
-        sb.AppendLine("    }");
-
-        return generatedArm ? new(refPrefix+ps.Type.GlobalName, sb.ToString(), ps.Name, "") : null;
-
-    }
-
-    private string ComputeRefPrefix(IPropertySymbol ps) => ps.RefKind is RefKind.Ref ? "ref " : "";
-
-    private MemberForwarder CreateMethod(IMethodSymbol ms)
-    {
-        StringBuilder code = new();
-
-        code.Append($"{ms.Name}(");
-
-        var items = ProcessParameterList(ms.Parameters, code);
-
-        code.AppendLine(") =>");
-        code.AppendLine($"        {RefArgumentPrefix(ms.RefKind)}As{targetName}().{ms.Name}({items});");
-
-        
-
-        return new MemberForwarder(
-            RefParameterPrefix(ms.RefKind) + ms.ReturnType.GlobalName, code.ToString(), ms.Name, items);
-    }
-
-
-    private string ProcessParameterList(ImmutableArray<IParameterSymbol> parameters, StringBuilder code)
-    {
-        StringBuilder arguments = new();
-        var delimiters = new FirstDifferemceBuffer<string>("", ",");
-        StringBuilder items = new();
-        foreach (var parameter in parameters)
-        {
-            var delim = delimiters.Next();
-            code.AppendLine(delim);
-            code.Append($"        {RefParameterPrefix(parameter.RefKind)}{parameter.Type.GlobalName} {parameter.Name}");
-
-            TryAddDefaultValue(code, parameter);
-
-            items.Append(delim);
-            items.Append($"{RefArgumentPrefix(parameter.RefKind)}{parameter.Name}");
-
-            arguments.AppendLine(parameter.Type.GlobalName);
+                (null, _) or (_, null) => true,
+                var (a, b) => a.Equals(b, StringComparison.Ordinal)
+            };
         }
 
-        return items.ToString();
-    }
-
-    private void TryAddDefaultValue(StringBuilder code, IParameterSymbol parameter)
-    {
-        if (parameter.HasExplicitDefaultValue)
-        {
-            code.Append($" = {CreateConstant(parameter)}");
-        }
-    }
-
-    public string CreateConstant(IParameterSymbol value) => value.ExplicitDefaultValue switch
-    {
-        null => "default",
-        string s => SymbolDisplay.FormatLiteral(s, true),
-        char c => SymbolDisplay.FormatLiteral(c,  true),
-        var e when value.Type is INamedTypeSymbol { TypeKind : TypeKind.Enum } enumType =>
-            $"({enumType.GlobalName}) {e}",
-        var i => i.ToString()
-
-    };
-
-    private string RefParameterPrefix(RefKind refKind) => refKind switch
-    {
-        RefKind.None => "",
-        RefKind.Out => "out ",
-        RefKind.RefReadOnlyParameter => "ref readonly ",
-        RefKind.Ref => "ref ",
-        RefKind.In => "in ",
-        _ => throw new ArgumentException("Unknown ref type")
-    };
-    private string RefArgumentPrefix(RefKind refKind) => refKind switch
-    {
-        RefKind.RefReadOnlyParameter => "ref ",
-        _ => RefParameterPrefix(refKind)
-    };
-
-    MemberForwarder? CreateEvent(IEventSymbol es)
-    {
-        StringBuilder code = new();
-
-        code.AppendLine($$"""{{es.Name}} {""");
-        if (es.AddMethod is { })
-        {
-           code.AppendLine($"        add => As{targetName}().{es.Name} += value;");
-        }
-        if (es.RemoveMethod is { })
-        {
-            code.AppendLine($"        remove => As{targetName}().{es.Name} -= value;");
-        }
-        code.AppendLine("    }");
-
-        return new($"event {es.Type}", code.ToString(), es.Name, "");
-    }
-}
-
-public ref struct FirstDifferemceBuffer<T> (T first, T subsequent)
-{
-    private T next = first;
-    public T Next()
-    {
-        var ret = next;
-        next = subsequent;
-        return ret;
+        public int GetHashCode(MemberForwarder obj) => obj.name.GetHashCode();
     }
 }

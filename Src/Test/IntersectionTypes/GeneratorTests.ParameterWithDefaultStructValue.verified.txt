@@ -13,11 +13,11 @@ global::IA, global::IB
 
     public global::IA AsIA() => 
         (global::IA)_value;
+
+    public global::IB AsIB() => 
+        (global::IB)_value;
     public void A(
         global::S i = default) =>
         AsIA().A(i);
 
-
-    public global::IB AsIB() => 
-        (global::IB)_value;
 }

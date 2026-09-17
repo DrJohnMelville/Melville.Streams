@@ -13,12 +13,12 @@ global::IA, global::IB
 
     public global::IA AsIA() => 
         (global::IA)_value;
+
+    public global::IB AsIB() => 
+        (global::IB)_value;
     public event EventHandler AE {
         add => AsIA().AE += value;
         remove => AsIA().AE -= value;
     }
 
-
-    public global::IB AsIB() => 
-        (global::IB)_value;
 }

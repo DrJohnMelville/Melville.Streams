@@ -15,11 +15,11 @@ global::IB
         (global::IA)_value;
     public static implicit global::IA(global::IA_IB i) => 
         i.AsIA
+
+    public global::IB AsIB() => 
+        (global::IB)_value;
     public int A {
         set => AsIA().A = value;
     }
 
-
-    public global::IB AsIB() => 
-        (global::IB)_value;
 }

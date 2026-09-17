@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
@@ -15,6 +16,7 @@ public readonly struct InnerAndCodeGenerator(
     )
 {
     private readonly StringBuilder sb = new();
+    private readonly List<MemberForwarder> forwarders = new();
 
     public string TargetFileName() =>
         $"""{symbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)}\{symbol.Name}.g.cs""";
@@ -29,6 +31,7 @@ public readonly struct InnerAndCodeGenerator(
         sb.AppendLine("{");
         DeclareConstructor();
         DeclareMethodForwarders();
+        OutputForwarders();
         sb.AppendLine("}");
 
         return sb.ToString();
@@ -98,16 +101,6 @@ public readonly struct InnerAndCodeGenerator(
         GenerateAllMembers(sym);
     }
 
-    private void GenerateAllMembers(INamedTypeSymbol sym)
-    {
-        var fact = new MemberForwarderFactory(sym.Name);
-        foreach (var member in sym.GetMembers())
-        {
-            if (IsNotSpecialInternalMethod(member))
-                fact.Create(member)?.WriteImplicitForwarder(sb);
-        }
-    }
-
     private void GenerateAsMethod(INamedTypeSymbol sym) =>
         sb.AppendLine($"""
                 public {sym.GlobalName} As{sym.Name}() => 
@@ -125,6 +118,36 @@ public readonly struct InnerAndCodeGenerator(
 
         }
     }
+
+    private void GenerateAllMembers(INamedTypeSymbol sym)
+    {
+        var fact = new MemberForwarderFactory(sym.Name);
+        foreach (var member in sym.GetMembers())
+        {
+            if (IsNotSpecialInternalMethod(member) &&
+                fact.Create(member) is { } forwarder)
+                forwarders.Add(forwarder);
+        }
+    }
+
+    private void OutputForwarders()
+    {
+        foreach (var forwarder in forwarders.GroupBy(i=>i, MemberForwarder.Comparer))
+        {
+            if (forwarder.Count() == 1)
+            {
+                forwarder.First().WriteImplicitForwarder(sb);
+            }
+            else
+            {
+                foreach  (var f2 in forwarder)
+                {
+                    f2.WriteExplicitForwarder(sb);
+                }
+            }
+        }
+    }
+
 }
 
 public static class SymbolOperations
