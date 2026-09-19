@@ -1,4 +1,4 @@
-﻿using Melville.IntersectionTypes;
+﻿using Melville.IntersectionTypes.Generator;
 using System.Collections.Generic;
 
 namespace Test.IntersectionTypes;

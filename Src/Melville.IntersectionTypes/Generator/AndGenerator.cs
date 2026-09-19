@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 
-namespace Melville.IntersectionTypes;
+namespace Melville.IntersectionTypes.Generator;
 
 [Generator]
 public class AndGenerator : IIncrementalGenerator

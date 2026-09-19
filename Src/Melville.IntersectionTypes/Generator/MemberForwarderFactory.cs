@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 
-namespace Melville.IntersectionTypes;
+namespace Melville.IntersectionTypes.Generator;
 
 internal readonly struct MemberForwarderFactory(string targetName)
 {

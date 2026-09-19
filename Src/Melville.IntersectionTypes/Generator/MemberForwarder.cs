@@ -8,7 +8,7 @@ using System.Reflection.Metadata;
 using System.Text;
 using System.Xml.Linq;
 
-namespace Melville.IntersectionTypes;
+namespace Melville.IntersectionTypes.Generator;
 
 public class MemberForwarder(
     string returnType,
@@ -18,7 +18,7 @@ public class MemberForwarder(
     string parentType) 
 {
     private string name = name;
-    private string parameterTypes = parameterTypes;
+    private string? parameterTypes = parameterTypes;
 
     public void WriteImplicitForwarder(StringBuilder sb)
     {
