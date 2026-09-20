@@ -17,7 +17,7 @@ public record struct AndCodeGenerator(StructDeclarationSyntax Declaration, Seman
         var components = symbol.GetComponentTypes();
 
         CheckComponentTypes(components);
-        var engine = new InnerAndCodeGenerator(Declaration, symbol, components);
+        var engine = new InnerAndCodeGenerator(symbol, components);
 
         context.AddSource(engine.TargetFileName(), engine.ImplementationCode());
     }

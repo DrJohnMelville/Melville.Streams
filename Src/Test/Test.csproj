@@ -7,8 +7,6 @@
     <PackageReference Include="TUnit.Mocks" />
     <PackageReference Include="Verify" />
     <PackageReference Include="Verify.TUnit" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Melville.IntersectionTypes\Melville.IntersectionTypes.csproj" />
   </ItemGroup>
 	

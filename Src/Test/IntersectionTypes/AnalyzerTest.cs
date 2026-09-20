@@ -16,7 +16,7 @@ public class AnalyzerTest
     private async Task RunDiagnostic(string code, string? arg1 = null, string? arg2 = null)
     {
         verifier.TestCode = code;
-        verifier.TestState.AdditionalReferences.Add(typeof(VerifyIntersectionAttribute).Assembly);
+        verifier.TestState.AdditionalReferences.Add(typeof(IntersectionTypeAttribute).Assembly);
         
         await verifier.RunAsync();
     }

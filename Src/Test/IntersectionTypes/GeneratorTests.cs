@@ -30,6 +30,33 @@ public class GeneratorTests
             public readonly partial struct IA_IB {}
  
             """);
+    [Test]
+    public Task TwoInterfacesWithGenericTypes() => SuccessText("""
+            using Melville.IntersectionTypes;
+
+            namespace NS.A.B;
+
+            public interface IA<T> where T: class {}
+            public interface IB<T> where T: struct {}
+
+            [IntersectionType(typeof(IA<string>), typeof(IB<int>))]
+            public readonly partial struct IA_IB {}
+ 
+            """);
+    [Test]
+    public Task GenericIntersection() => SuccessText("""
+            using Melville.IntersectionTypes;
+
+            namespace NS.A.B;
+
+            public interface IA<T> where T: class {}
+            public interface IB<T> where T: struct {}
+
+            [IntersectionType(typeof(IA<T1>), typeof(IB<T2>))]
+            public readonly partial struct IA_IB<T1,T2> {} where T1: class where T2:struct
+ 
+            """);
+#warning test a parent class that is generic with a 
 
     [Test] public Task ClassAndInterface() => SuccessText("""
         using Melville.IntersectionTypes;
@@ -41,6 +68,22 @@ public class GeneratorTests
         
         [IntersectionType(typeof(IA), typeof(IB))]
         public readonly partial struct IA_IB {}
+        """);
+
+    [Test] public Task MultipleEnclosures() => SuccessText("""
+        using Melville.IntersectionTypes;
+        
+        namespace NS.A.B;
+       
+        public partial record Record() {
+        public partial class Class{
+        public partial struct Struct {
+        public class IA {}
+        public interface IB {}
+       
+        [IntersectionType(typeof(IA), typeof(IB))]
+        public readonly partial struct IA_IB {}
+        }}}
         """);
 
     [Test] public Task InterfacesWithMemners() => SuccessText("""
@@ -154,6 +197,26 @@ public class GeneratorTests
         using Melville.IntersectionTypes;
                 
         public interface IA { public static int A();}
+        public interface IB {}
+        
+        [IntersectionType(typeof(IA), typeof(IB))]
+        public readonly partial struct IA_IB {}
+        """);
+
+    [Test] public Task NewMethods() => SuccessText("""
+        using Melville.IntersectionTypes;
+                
+        public class IA { public new int A(){}}
+        public interface IB {}
+        
+        [IntersectionType(typeof(IA), typeof(IB))]
+        public readonly partial struct IA_IB {}
+        """);
+
+    [Test] public Task AbstractMethods() => SuccessText("""
+        using Melville.IntersectionTypes;
+                
+        public abstract class IA { public abstract int A();}
         public interface IB {}
         
         [IntersectionType(typeof(IA), typeof(IB))]

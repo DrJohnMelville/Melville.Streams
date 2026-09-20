@@ -3,6 +3,7 @@
     <File Path="Directory.Build.Props" />
     <File Path="Directory.Packages.props" />
   </Folder>
+  <Project Path="IntegrationTesting/IntegrationTesting.csproj" Id="04cb4bc0-241f-47cc-8cf8-d728cc5b83c5" />
   <Project Path="Melville.IntersectionTypes/Melville.IntersectionTypes.csproj" />
   <Project Path="Test/Test.csproj" Id="a82ec0b2-6a16-4bb8-a628-5d336eaa4af5" />
 </Solution>

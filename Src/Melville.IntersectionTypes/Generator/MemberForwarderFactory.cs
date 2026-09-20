@@ -81,7 +81,7 @@ internal readonly struct MemberForwarderFactory(string targetName)
         ProcessParameterList(ImmutableArray<IParameterSymbol> parameters, StringBuilder code)
     {
         StringBuilder argumentTypes = new();
-        var delimiters = new FirstDifferemceBuffer<string>("", ",");
+        var delimiters = new FirstDifferenceBuffer<string>("", ",");
         StringBuilder items = new();
         foreach (var parameter in parameters)
         {

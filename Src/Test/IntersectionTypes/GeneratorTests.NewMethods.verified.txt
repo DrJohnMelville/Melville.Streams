@@ -1,5 +1,4 @@
 ﻿public readonly partial struct IA_IB:
-global::IA,
 global::IB
 {
     private static global::System.ReadOnlySpan<global::System.Type> _requiredTypes() =>
@@ -31,11 +30,12 @@ global::IB
         }
     public global::IA AsIA() => 
         (global::IA)this.Value;
+    public static implicit global::IA(global::IA_IB i) => 
+        i.AsIA();
 
     public global::IB AsIB() => 
         (global::IB)this.Value;
-    public int A(
-        in int a) =>
-        AsIA().A(in a);
+    public int A() =>
+        AsIA().A();
 
 }

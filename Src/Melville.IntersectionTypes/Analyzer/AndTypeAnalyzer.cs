@@ -18,7 +18,7 @@ public class AndTypeAnalyzer : DiagnosticAnalyzer
     public static readonly DiagnosticDescriptor Rule = new(
         id: ruleName,
         title: "Invalid intersecion type arguments",
-        messageFormat: "Type {0} does not implement {1}. ",
+        messageFormat: "Type {0} does not implement {1}",
         category: "Types",
         DiagnosticSeverity.Error,
         isEnabledByDefault: true
@@ -37,14 +37,14 @@ public class AndTypeAnalyzer : DiagnosticAnalyzer
     private void CheckParameter(SyntaxNodeAnalysisContext context)
     {
         if (context.Node is ArgumentSyntax argument &&
+
             context.SemanticModel.GetOperation(argument) is IArgumentOperation operation &&
-            DesiredTypes(operation) is { Length: > 1 } desired &&
+            operation.Parent is IObjectCreationOperation { Arguments.Length : 1} constructorCall &&
+            DesiredTypes(constructorCall.Type) is { Length: > 1 } desired &&
             GetExpressionType(operation.Value) is { } actual)
             new ParameterVerifier(actual, desired, context).Check();
       
     }
-    private ImmutableArray<TypedConstant> DesiredTypes(IArgumentOperation? operation) =>
-        DesiredTypes((operation?.Parent as IObjectCreationOperation)?.Type);
     private ImmutableArray<TypedConstant> DesiredTypes(ITypeSymbol? constructedType) => constructedType is not null ?
             constructedType.GetComponentTypes() : [];
 

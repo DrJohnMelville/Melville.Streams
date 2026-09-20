@@ -1,19 +1,19 @@
 ﻿namespace NS.A.B;
 public readonly partial struct IA_IB:
-global::NS.A.B.IA,
-global::NS.A.B.IB
+global::NS.A.B.IA<string>,
+global::NS.A.B.IB<int>
 {
     private static global::System.ReadOnlySpan<global::System.Type> _requiredTypes() =>
     (global::System.Type[])[
-        typeof(global::NS.A.B.IA),
-        typeof(global::NS.A.B.IB),
+        typeof(global::NS.A.B.IA<string>),
+        typeof(global::NS.A.B.IB<int>),
     ];
-    public global::NS.A.B.IA Value {get;}
+    public global::NS.A.B.IA<string> Value {get;}
 
-    public IA_IB (global::NS.A.B.IA value): this(value, true) =>
+    public IA_IB (global::NS.A.B.IA<string> value): this(value, true) =>
         global::Melville.IntersectionTypes.TypeVerifier.VerifyTypes(Value,
         _requiredTypes().Slice(1));
-    private IA_IB (global::NS.A.B.IA value, bool verify) =>
+    private IA_IB (global::NS.A.B.IA<string> value, bool verify) =>
         Value = value;
         public static bool TryCreateFrom(object input, 
             out global::NS.A.B.IA_IB value)
@@ -21,7 +21,7 @@ global::NS.A.B.IB
             if (global::Melville.IntersectionTypes.TypeVerifier.IsValidType(input,
                    _requiredTypes())) 
             {
-                value = new ((global::NS.A.B.IA) input, false );
+                value = new ((global::NS.A.B.IA<string>) input, false );
                 return true;
             }
             else 
@@ -30,9 +30,9 @@ global::NS.A.B.IB
                 return false;
             }
         }
-    public global::NS.A.B.IA AsIA() => 
-        (global::NS.A.B.IA)this.Value;
+    public global::NS.A.B.IA<string> AsIA() => 
+        (global::NS.A.B.IA<string>)this.Value;
 
-    public global::NS.A.B.IB AsIB() => 
-        (global::NS.A.B.IB)this.Value;
+    public global::NS.A.B.IB<int> AsIB() => 
+        (global::NS.A.B.IB<int>)this.Value;
 }

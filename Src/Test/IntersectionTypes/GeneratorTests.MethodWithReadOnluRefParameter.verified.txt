@@ -1,21 +1,39 @@
-﻿[global::System.Runtime.CompilerServices.UnionAttribute]
-public readonly partial struct global::IA_IB:
-global::IA, global::IB
+﻿public readonly partial struct IA_IB:
+global::IA,
+global::IB
 {
-    private readonly {GlobalName(first)} _value;
-    public {symbol.Name} ({GlobalName(first)} value) 
-    {
-        _value = value;
-        global::Melville.IntersectionTypes.TypeVerifier.VerifyTypes(_value
-            , typeof(global::IB)
-        );
-    }
+    private static global::System.ReadOnlySpan<global::System.Type> _requiredTypes() =>
+    (global::System.Type[])[
+        typeof(global::IA),
+        typeof(global::IB),
+    ];
+    public global::IA Value {get;}
 
+    public IA_IB (global::IA value): this(value, true) =>
+        global::Melville.IntersectionTypes.TypeVerifier.VerifyTypes(Value,
+        _requiredTypes().Slice(1));
+    private IA_IB (global::IA value, bool verify) =>
+        Value = value;
+        public static bool TryCreateFrom(object input, 
+            out global::IA_IB value)
+        {
+            if (global::Melville.IntersectionTypes.TypeVerifier.IsValidType(input,
+                   _requiredTypes())) 
+            {
+                value = new ((global::IA) input, false );
+                return true;
+            }
+            else 
+            {
+                value = default!;
+                return false;
+            }
+        }
     public global::IA AsIA() => 
-        (global::IA)_value;
+        (global::IA)this.Value;
 
     public global::IB AsIB() => 
-        (global::IB)_value;
+        (global::IB)this.Value;
     public int A(
         ref readonly int a) =>
         AsIA().A(ref a);
