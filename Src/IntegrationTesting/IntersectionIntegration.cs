@@ -33,4 +33,30 @@ public partial class IntersectionIntegration
         source.MA().WasCalled(Times.Exactly(2));
         source.Plus1(1).WasCalled(Times.Once);
     }
+    [Test]
+    public void AsInterface()
+    {
+        source.Plus1(1).Returns(2);
+        if (Intersection.TryCreateFrom(source.Object, out var sut))
+        {
+            sut.AsIA().MA();
+            sut.AsIB().Plus1(1).Should().Be(2);
+            sut.AsIA().MA();
+        }
+        source.MA().WasCalled(Times.Exactly(2));
+        source.Plus1(1).WasCalled(Times.Once);
+    }
+    [Test]
+    public void CastToInterface()
+    {
+        source.Plus1(1).Returns(2);
+        if (Intersection.TryCreateFrom(source.Object, out var sut))
+        {
+            ((IA)sut).MA();
+            ((IB)sut).Plus1(1).Should().Be(2);
+            ((IA)sut).MA();
+        }
+        source.MA().WasCalled(Times.Exactly(2));
+        source.Plus1(1).WasCalled(Times.Once);
+    }
 }
