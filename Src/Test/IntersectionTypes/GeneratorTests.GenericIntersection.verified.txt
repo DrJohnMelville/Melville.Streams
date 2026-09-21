@@ -1,5 +1,5 @@
 ﻿namespace NS.A.B;
-public readonly partial struct IA_IB:
+public readonly partial struct IA_IB<T1,T2>:
 global::NS.A.B.IA<T1>,
 global::NS.A.B.IB<T2>
 {

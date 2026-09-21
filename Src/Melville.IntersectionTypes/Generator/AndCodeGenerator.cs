@@ -12,42 +12,47 @@ public record struct AndCodeGenerator(StructDeclarationSyntax Declaration, Seman
 {
     public void Generate(SourceProductionContext context)
     {
-        ISymbol? symbol = SemanticModel.GetDeclaredSymbol(Declaration);
+        var symbol = SemanticModel.GetDeclaredSymbol(Declaration) as INamedTypeSymbol;
         if (symbol is null) throw new InvalidOperationException("Cannot find target symbol.");
         var components = symbol.GetComponentTypes();
 
-        CheckComponentTypes(components);
+        if (components.Length < 2)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(
+                            ErrorDeclarations.NeedTwoOrMoreTypes,
+                            Declaration.GetLocation(),
+                            symbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)
+                            ));
+            return;
+        }
         var engine = new InnerAndCodeGenerator(symbol, components);
 
         context.AddSource(engine.TargetFileName(), engine.ImplementationCode());
     }
 
-    private void CheckComponentTypes(ImmutableArray<TypedConstant> components)
+    private void CheckComponentTypes(
+        ImmutableArray<IParameterSymbol> components, SourceProductionContext context, INamedTypeSymbol symbol)
     {
-        if (components.Length < 2) 
-            throw new InvalidOperationException("An IntersectionType must specify at least 2 types");
+        if (components.Length < 2)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(
+                ErrorDeclarations.NeedTwoOrMoreTypes,
+                Declaration.GetLocation(),
+                symbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)
+                ));
+        }
+            
     }
 }
 
 public static class GetComponentTypesImpl
 {
-    extension (ISymbol symbol)
+    extension (ITypeSymbol symbol)
     {
-        public ImmutableArray<TypedConstant> GetComponentTypes()
-        {
-            var attrs = symbol.GetAttributes();
-            foreach (var attr in attrs)
-            {
-                var className = attr.AttributeClass?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                if ($"global::{typeof(IntersectionTypeAttribute).FullName}"
-                    .Equals(className, StringComparison.Ordinal))
-                    return GetComponentTypes(attr);
-            }
-            return [];
-        }
+        public ImmutableArray<IParameterSymbol> GetComponentTypes() =>
+            (symbol.GetMembers("IsIntersectionOfTypes") is { Length: 1} members &&
+                members[0] is IMethodSymbol member)?
+                member.Parameters:[];
 
     }
- 
-    private static ImmutableArray<TypedConstant> GetComponentTypes(AttributeData attr) =>
-        attr.ConstructorArguments[0].Values;
 }

@@ -7,14 +7,14 @@ namespace Melville.IntersectionTypes.Analyzer;
 
 public readonly struct ParameterVerifier(
     ITypeSymbol argumentType,
-    ImmutableArray<TypedConstant> interfaces,
+    ImmutableArray<IParameterSymbol> interfaces,
     SyntaxNodeAnalysisContext context)
 {
     public void Check()
     {
         for (int i = 1; i < interfaces.Length; i++)
         {
-            CheckSingleType(interfaces[i].Value as ITypeSymbol);
+            CheckSingleType(interfaces[i].Type);
         }
     }
 
@@ -23,7 +23,7 @@ public readonly struct ParameterVerifier(
         if (!ArgumentMatchesType(desiredInterface))
         {
             context.ReportDiagnostic(
-                Diagnostic.Create(AndTypeAnalyzer.Rule,
+                Diagnostic.Create(ErrorDeclarations.ParameterLacksType,
                     context.Node.GetLocation(),
                     argumentType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat),
                     desiredInterface?.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)));

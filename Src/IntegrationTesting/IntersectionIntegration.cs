@@ -12,8 +12,13 @@ public interface IB
     public int Plus1(int i);
 }
 
-[IntersectionType(typeof(IA), typeof(IB))]
-public readonly partial struct Intersection { }
+public interface C<T> { }
+
+[IntersectionType()]
+public readonly partial struct Intersection 
+{
+    partial void IsIntersectionOfTypes(IA ia, IB id);
+}
 
 public partial class IntersectionIntegration
 {

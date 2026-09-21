@@ -14,18 +14,9 @@ namespace Melville.IntersectionTypes.Analyzer;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class AndTypeAnalyzer : DiagnosticAnalyzer
 {
-    private const string ruleName = "And0001";
-    public static readonly DiagnosticDescriptor Rule = new(
-        id: ruleName,
-        title: "Invalid intersecion type arguments",
-        messageFormat: "Type {0} does not implement {1}",
-        category: "Types",
-        DiagnosticSeverity.Error,
-        isEnabledByDefault: true
-        );
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-        [Rule];
+        [ErrorDeclarations.ParameterLacksType];
 
     public override void Initialize(AnalysisContext context)
     {
@@ -45,7 +36,8 @@ public class AndTypeAnalyzer : DiagnosticAnalyzer
             new ParameterVerifier(actual, desired, context).Check();
       
     }
-    private ImmutableArray<TypedConstant> DesiredTypes(ITypeSymbol? constructedType) => constructedType is not null ?
+    private ImmutableArray<IParameterSymbol> DesiredTypes(ITypeSymbol? constructedType) => 
+        constructedType is not null ?
             constructedType.GetComponentTypes() : [];
 
     ITypeSymbol? GetExpressionType(IOperation value) => value switch

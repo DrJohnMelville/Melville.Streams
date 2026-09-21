@@ -13,7 +13,7 @@ namespace Melville.IntersectionTypes.Generator;
 
 public readonly partial struct InnerAndCodeGenerator(
         ISymbol symbol,
-        ImmutableArray<TypedConstant> interfaces
+        ImmutableArray<IParameterSymbol> interfaces
     )
 {
     private readonly StringBuilder sb = new();
@@ -42,7 +42,7 @@ public readonly partial struct InnerAndCodeGenerator(
     private int WriteTypeDeclaration(TypeDeclarationSyntax syntax, Action? writeParents)
     {
         var ret = WriteWrapper(syntax.Parent);
-        sb.Append($"{syntax.Modifiers} {syntax.Keyword} {syntax.Identifier}");
+        sb.Append($"{syntax.Modifiers} {syntax.Keyword} {syntax.Identifier}{syntax.TypeParameterList}");
         writeParents?.Invoke();
         sb.AppendLine();
         sb.AppendLine("{");
@@ -80,25 +80,16 @@ public readonly partial struct InnerAndCodeGenerator(
         var delim = new FirstDifferenceBuffer<string>(":\r\n", ",\r\n");
         foreach (var inter in interfaces)
         {
-            if (inter.Value is not INamedTypeSymbol { TypeKind: TypeKind.Interface }) continue;
+           if (inter.Type is not INamedTypeSymbol { TypeKind: TypeKind.Interface } nts) continue;
             sb.Append(delim.Next());
-            sb.Append((inter.Value as ISymbol).GlobalName);
+            sb.Append(nts.GlobalName);
         }
     }
     void DeclareConstructor()
     {
+        DeclareTypeList();
+
         if (FirstType() is not { } first) return;
-
-        sb.AppendLine("""
-                private static global::System.ReadOnlySpan<global::System.Type> _requiredTypes() =>
-                (global::System.Type[])[
-            """);
-        foreach (var child in interfaces)
-        {
-            sb.AppendLine($"        typeof({(child.Value as ISymbol).GlobalName}),");
-        }
-        sb.AppendLine("    ];");
-
         sb.AppendLine($$"""
                 public {{first.GlobalName}} Value {get;}
 
@@ -110,7 +101,20 @@ public readonly partial struct InnerAndCodeGenerator(
             """);
     }
 
-    private INamedTypeSymbol? FirstType() => interfaces[0].Value as INamedTypeSymbol;
+    private void DeclareTypeList()
+    {
+        sb.AppendLine("""
+                private static global::System.ReadOnlySpan<global::System.Type> _requiredTypes() =>
+                (global::System.Type[])[
+            """);
+        foreach (var child in interfaces)
+        {
+            sb.AppendLine($"        typeof({(child.Type as ISymbol).GlobalName}),");
+        }
+        sb.AppendLine("    ];");
+    }
+
+    private INamedTypeSymbol? FirstType() => interfaces[0].Type as INamedTypeSymbol;
 
     void DeclareTryFactory()
     {
@@ -138,7 +142,7 @@ public readonly partial struct InnerAndCodeGenerator(
     {
         foreach (var inter in interfaces)
         {
-            if (inter.Value is INamedTypeSymbol sym)
+            if (inter.Type is INamedTypeSymbol sym)
                 DeclareComponentForwarders(sym);
         }
     }

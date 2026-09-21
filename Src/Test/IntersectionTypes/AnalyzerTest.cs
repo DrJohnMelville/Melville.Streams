@@ -33,9 +33,10 @@ public class AnalyzerTest
         public interface IA{}
         public interface IB{}
         public class Inner: IA, IB{}
-        [Melville.IntersectionTypes.IntersectionType(typeof(IA),typeof(IB))]
-        public struct Both: IA, IB {
-            public Both( IA i){}
+        [Melville.IntersectionTypes.IntersectionType()]
+        public partial struct Both: IA, IB {
+            partial void IsIntersectionOfTypes(IA ia, IB ib);
+                    public Both( IA i){}
         }
         public class A 
         {
@@ -48,8 +49,9 @@ public class AnalyzerTest
         public interface IA{}
         public class IB{}
         public class Inner: IB, IA{}
-        [Melville.IntersectionTypes.IntersectionType(typeof(IA),typeof(IB))]
-        public struct Both: IA {
+        [Melville.IntersectionTypes.IntersectionType]
+        public partial struct Both: IA {
+            partial void IsIntersectionOfTypes(IA ia, IB ib);
             public Both( IA i){}
         }
         public class A 
@@ -63,9 +65,10 @@ public class AnalyzerTest
         public interface IA{}
         public interface IB{}
         public class Inner: IA{}
-        [Melville.IntersectionTypes.IntersectionType(typeof(IA),typeof(IB))]
-        public struct Both: IA, IB {
-            public Both( IA i){}
+        [Melville.IntersectionTypes.IntersectionType()]
+        public partial struct Both: IA, IB {
+            partial void IsIntersectionOfTypes(IA ia, IB ib);
+                            public Both( IA i){}
         }
         public class A 
         {
