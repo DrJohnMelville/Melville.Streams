@@ -59,7 +59,6 @@ public class GeneratorTests
                 partial void IsIntersectionOfTypes(IA<T1> _, IB<T2> _);
             }
             """);
-#warning test a parent class that is generic with a 
 
     [Test] public Task ClassAndInterface() => SuccessText("""
         using Melville.IntersectionTypes;

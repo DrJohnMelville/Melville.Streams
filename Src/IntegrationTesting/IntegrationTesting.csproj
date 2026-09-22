@@ -5,6 +5,7 @@
 		<PackageReference Include="TUnit.Engine" />
 		<PackageReference Include="TUnit.Mocks" />
 		<ProjectReference Include="..\Melville.IntersectionTypes\Melville.IntersectionTypes.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="true" />
+		<ProjectReference Include="..\Melville.StreamInterfaces\Melville.StreamInterfaces.csproj" />
 	</ItemGroup>
 
 </Project>
