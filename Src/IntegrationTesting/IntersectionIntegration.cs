@@ -14,7 +14,7 @@ public interface IB
 
 public interface C<T> { }
 
-[IntersectionType()]
+[IntersectionType]
 public readonly partial struct Intersection 
 {
     partial void IsIntersectionOfTypes(IA ia, IB id);

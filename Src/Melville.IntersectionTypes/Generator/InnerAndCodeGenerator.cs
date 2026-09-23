@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -42,6 +43,8 @@ public readonly partial struct InnerAndCodeGenerator(
     private int WriteTypeDeclaration(TypeDeclarationSyntax syntax, Action? writeParents)
     {
         var ret = WriteWrapper(syntax.Parent);
+        if (writeParents is not null)
+            sb.AppendLine("[System.Runtime.CompilerServices.Union]");
         sb.Append($"{syntax.Modifiers} {syntax.Keyword} {syntax.Identifier}{syntax.TypeParameterList}");
         writeParents?.Invoke();
         sb.AppendLine();
@@ -91,13 +94,13 @@ public readonly partial struct InnerAndCodeGenerator(
 
         if (FirstType() is not { } first) return;
         sb.AppendLine($$"""
-                public {{first.GlobalName}} Value {get;}
+                public object Value {get;}
 
                 public {{symbol.Name}} ({{first.GlobalName}} value): this(value, true) =>
                     global::Melville.IntersectionTypes.TypeVerifier.VerifyTypes(Value,
                     _requiredTypes().Slice(1));
-                private {{symbol.Name}} ({{first.GlobalName}} value, bool verify) =>
-                    Value = value;
+                private {{symbol.Name}} (object value, bool verify) => Value = value;
+
             """);
     }
 
@@ -126,7 +129,7 @@ public readonly partial struct InnerAndCodeGenerator(
                         if (global::Melville.IntersectionTypes.TypeVerifier.IsValidType(input,
                                _requiredTypes())) 
                         {
-                            value = new (({{first.GlobalName}}) input, false );
+                            value = new (input, false );
                             return true;
                         }
                         else 

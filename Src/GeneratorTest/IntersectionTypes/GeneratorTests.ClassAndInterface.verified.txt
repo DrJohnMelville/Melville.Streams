@@ -1,4 +1,5 @@
 ﻿namespace NS.A.B;
+[System.Runtime.CompilerServices.Union]
 public readonly partial struct IA_IB:
 global::NS.A.B.IB
 {
@@ -7,20 +8,20 @@ global::NS.A.B.IB
         typeof(global::NS.A.B.IA),
         typeof(global::NS.A.B.IB),
     ];
-    public global::NS.A.B.IA Value {get;}
+    public object Value {get;}
 
     public IA_IB (global::NS.A.B.IA value): this(value, true) =>
         global::Melville.IntersectionTypes.TypeVerifier.VerifyTypes(Value,
         _requiredTypes().Slice(1));
-    private IA_IB (global::NS.A.B.IA value, bool verify) =>
-        Value = value;
+    private IA_IB (object value, bool verify) => Value = value;
+
         public static bool TryCreateFrom(object input, 
             out global::NS.A.B.IA_IB value)
         {
             if (global::Melville.IntersectionTypes.TypeVerifier.IsValidType(input,
                    _requiredTypes())) 
             {
-                value = new ((global::NS.A.B.IA) input, false );
+                value = new (input, false );
                 return true;
             }
             else 

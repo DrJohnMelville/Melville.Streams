@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using System.Xml.Linq;
 
@@ -27,7 +28,33 @@ public record struct AndCodeGenerator(StructDeclarationSyntax Declaration, Seman
         }
         var engine = new InnerAndCodeGenerator(symbol, components);
 
-        context.AddSource(engine.TargetFileName(), engine.ImplementationCode());
+        string name = engine.TargetFileName();
+        string source = engine.ImplementationCode();
+
+        UdpConsole.WriteLine(name);
+        UdpConsole.WriteLine(source);
+
+        context.AddSource(name, source);
+    }
+
+    public static class UdpConsole
+    {
+        private static UdpClient? client = null;
+        private static UdpClient Client
+        {
+            get
+            {
+                client ??= new UdpClient();
+                return client;
+            }
+        }
+
+        public static string WriteLine(string str)
+        {
+            var bytes = Encoding.UTF8.GetBytes(str);
+            Client.Send(bytes, bytes.Length, "127.0.0.1", 15321);
+            return str;
+        }
     }
 
     private void CheckComponentTypes(

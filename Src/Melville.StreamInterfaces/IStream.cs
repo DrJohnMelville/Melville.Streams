@@ -63,7 +63,7 @@ public static class OperationsForIStream
 
     extension (Stream self)
     {
-        public StreamToInterfaceAdapter AsStreamInterface() =>
+        public StreamToInterfaceAdapter AsReaderWriter() =>
             new StreamToInterfaceAdapter(self);
     }
 }

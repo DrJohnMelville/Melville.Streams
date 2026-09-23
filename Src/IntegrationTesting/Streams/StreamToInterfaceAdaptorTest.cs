@@ -17,7 +17,7 @@ public class StreamToInterfaceAdaptorTest
     public StreamToInterfaceAdaptorTest()
     {
         inner.CanWrite.Returns(true);
-        sut = inner.Object.AsStreamInterface();
+        sut = inner.Object.AsReaderWriter();
     }
 
     [Test]
