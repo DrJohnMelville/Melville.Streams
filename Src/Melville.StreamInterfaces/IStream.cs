@@ -1,7 +1,8 @@
-﻿using Melville.StreamInterfaces.Implementation;
+﻿using Melville.StreamInterfaces.Streams;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices.Swift;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
@@ -11,19 +12,6 @@ namespace Melville.StreamInterfaces;
 
 public interface IStream
 {
-}
-
-public interface ISyncReader: IStream
-{
-    int Read(Span<byte> buffer);
-    int Read(byte[] buffer, int position, int length) => Read(buffer.AsSpan(position, length));
-}
-
-public interface IAsyncReader: IStream
-{
-    ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellation = default);
-    ValueTask<int> ReadAsync(byte[] buffer, int position, int length, CancellationToken cancellation = default) =>
-        ReadAsync(buffer.AsMemory(position, length), cancellation);
 }
 
 public interface ISyncWriter: IStream

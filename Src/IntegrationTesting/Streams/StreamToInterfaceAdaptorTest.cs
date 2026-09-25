@@ -1,6 +1,6 @@
 ﻿using Melville.IntersectionTypes.Generator;
 using Melville.StreamInterfaces;
-using Melville.StreamInterfaces.Implementation;
+using Melville.StreamInterfaces.Streams;
 using System;
 using System.IO;
 using System.Threading;

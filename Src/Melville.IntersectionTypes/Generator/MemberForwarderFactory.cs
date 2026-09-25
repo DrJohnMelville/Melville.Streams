@@ -115,6 +115,8 @@ internal readonly struct MemberForwarderFactory(string targetName)
         char c => SymbolDisplay.FormatLiteral(c, true),
         var e when value.Type is INamedTypeSymbol { TypeKind: TypeKind.Enum } enumType =>
             $"({enumType.GlobalName}) {e}",
+        true => "true",
+        false => "false",
         var i => i.ToString()
 
     };

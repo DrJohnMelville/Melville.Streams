@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Melville.StreamInterfaces.Implementation;
+namespace Melville.StreamInterfaces.Streams;
 
 public class StreamToInterfaceAdapter(Stream inner) : 
     ISyncReader, IAsyncReader, ISyncWriter, IAsyncWriter, ISeekableStream, IStreamPosition, IStreamLength

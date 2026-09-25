@@ -1,7 +1,9 @@
 ﻿using Melville.StreamInterfaces;
+using Melville.StreamInterfaces.Memory;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace IntegrationTesting.Streams;
