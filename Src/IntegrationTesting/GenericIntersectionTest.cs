@@ -12,9 +12,8 @@ public interface IA<T> {
 public partial class GenericIntersectionTest 
 {
     [IntersectionType]
-    public readonly partial struct Intersect<T>
+    public readonly partial struct Intersect<T>: IA<T>, IB
     {
-        partial void IsIntersectionOfTypes(IA<T> a, IB b);
     }
 
     [Test]

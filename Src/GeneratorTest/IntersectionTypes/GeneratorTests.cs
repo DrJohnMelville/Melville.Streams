@@ -27,8 +27,7 @@ public class GeneratorTests
             public interface IB {}
 
             [IntersectionType]
-            public readonly partial struct IA_IB {
-                partial void IsIntersectionOfTypes(IA _, IB _);
+            public readonly partial struct IA_IB: IA, IB {
             }
             """);
     [Test]
@@ -41,8 +40,7 @@ public class GeneratorTests
             public interface IB<T> where T: struct {}
 
             [IntersectionType]
-            public readonly partial struct IA_IB {
-                partial void IsIntersectionOfTypes(IA<string> _, IB<int> _);
+            public readonly partial struct IA_IB: IA<string>, IB<int> {
             }
             """);
     [Test]
@@ -55,9 +53,8 @@ public class GeneratorTests
             public interface IB<T> where T: struct {}
 
             [IntersectionType]
-            public readonly partial struct IA_IB<T1,T2> where T1 is class where T2 is stuct {
-                partial void IsIntersectionOfTypes(IA<T1> _, IB<T2> _);
-            }
+            public readonly partial struct IA_IB<T1,T2>: IA<T1>, IB<T2> where 
+                T1 is class where T2 is stuct {    }
             """);
 
     [Test] public Task ClassAndInterface() => SuccessText("""
@@ -69,8 +66,7 @@ public class GeneratorTests
         public interface IB {}
         
         [IntersectionType]
-        public readonly partial struct IA_IB {
-            partial void IsIntersectionOfTypes(IA _, IB _);
+        public readonly partial struct IA_IB:IIntersectionClass<IA>, IB {
         }
         """);
 
@@ -86,8 +82,7 @@ public class GeneratorTests
         public interface IB {}
        
         [IntersectionType]
-        public readonly partial struct IA_IB {
-            partial void IsIntersectionOfTypes(IA _, IB _);
+        public readonly partial struct IA_IB:IIntersectionClass<IA>, IB {
         }
         }}}
         """);
@@ -99,8 +94,7 @@ public class GeneratorTests
         public interface IB {System.String B(int i);}
         
         [IntersectionType]
-        public readonly partial struct IA_IB {
-            partial void IsIntersectionOfTypes(IA _, IB _);
+        public readonly partial struct IA_IB: IA, IB {
         }
         """);
 
@@ -111,8 +105,7 @@ public class GeneratorTests
         public interface IB {}
         
         [IntersectionType]
-        public readonly partial struct IA_IB {
-            partial void IsIntersectionOfTypes(IA _, IB _);
+        public readonly partial struct IA_IB: IA, IB {
         }
         """);
 
@@ -124,9 +117,9 @@ public class GeneratorTests
         public interface IB {}
         
         [IntersectionType]
-        public readonly partial struct IA_IB {
-            partial void IsIntersectionOfTypes(IA _, IB _);
+        public readonly partial struct IA_IB:IIntersectionClass<IA>, IB {
         }
+        
         """);
     [Test] public Task ClassWithInitProperty() => SuccessText("""
         using Melville.IntersectionTypes;
@@ -135,9 +128,8 @@ public class GeneratorTests
         public interface IB {}
         
         [IntersectionType]
-        public readonly partial struct IA_IB {
-            partial void IsIntersectionOfTypes(IA _, IB _);
-        }
+        public readonly partial struct IA_IB:IIntersectionClass<IA>, IB {
+        }        
         """);
 
     [Test] public Task ClassWithPrivateGet() => SuccessText("""
@@ -147,9 +139,8 @@ public class GeneratorTests
         public interface IB {}
         
         [IntersectionType]
-        public readonly partial struct IA_IB {
-            partial void IsIntersectionOfTypes(IA _, IB _);
-        }
+        public readonly partial struct IA_IB:IIntersectionClass<IA>, IB {
+        }        
         """);
 
     [Test] public Task ClassWithPrivateGetAndSet() => SuccessText("""
@@ -159,9 +150,8 @@ public class GeneratorTests
         public interface IB {}
         
         [IntersectionType]
-        public readonly partial struct IA_IB {
-            partial void IsIntersectionOfTypes(IA _, IB _);
-        }
+        public readonly partial struct IA_IB:IIntersectionClass<IA>, IB {
+        }        
         """);
     [Test] public Task ClassWithPrivateAndProtectedMethods() => SuccessText("""
         using Melville.IntersectionTypes;
@@ -170,9 +160,8 @@ public class GeneratorTests
         public interface IB {}
         
         [IntersectionType]
-        public readonly partial struct IA_IB {
-            partial void IsIntersectionOfTypes(IA _, IB _);
-        }
+        public readonly partial struct IA_IB:IIntersectionClass<IA>, IB {
+        }        
         """);
     [Test] public Task MethodWithNoParameters() => SuccessText("""
         using Melville.IntersectionTypes;
@@ -181,9 +170,8 @@ public class GeneratorTests
         public interface IB {}
         
         [IntersectionType]
-        public readonly partial struct IA_IB {
-            partial void IsIntersectionOfTypes(IA _, IB _);
-        }
+        public readonly partial struct IA_IB:IIntersectionClass<IA>, IB {
+        }        
         """);
     [Test] public Task IndexerWithSetAndGet() => SuccessText("""
         using Melville.IntersectionTypes;
@@ -192,9 +180,8 @@ public class GeneratorTests
         public interface IB {}
         
         [IntersectionType]
-        public readonly partial struct IA_IB {
-            partial void IsIntersectionOfTypes(IA _, IB _);
-        }
+        public readonly partial struct IA_IB:IIntersectionClass<IA>, IB {
+        }        
         """);
 
     [Test] public Task EventWithSetAndRemove() => SuccessText("""
@@ -204,9 +191,8 @@ public class GeneratorTests
         public interface IB {}
         
         [IntersectionType]
-        public readonly partial struct IA_IB {
-            partial void IsIntersectionOfTypes(IA _, IB _);
-        }
+        public readonly partial struct IA_IB:IIntersectionClass<IA>, IB {
+        }        
         """);
 
     [Test] public Task IgnoreClasses() => SuccessText("""
@@ -216,9 +202,8 @@ public class GeneratorTests
         public interface IB {}
         
         [IntersectionType]
-        public readonly partial struct IA_IB {
-            partial void IsIntersectionOfTypes(IA _, IB _);
-        }
+        public readonly partial struct IA_IB:IIntersectionClass<IA>, IB {
+        }        
         """);
 
     [Test] public Task StaticMethods() => SuccessText("""
@@ -228,9 +213,8 @@ public class GeneratorTests
         public interface IB {}
         
         [IntersectionType]
-        public readonly partial struct IA_IB {
-            partial void IsIntersectionOfTypes(IA _, IB _);
-        }
+        public readonly partial struct IA_IB:IIntersectionClass<IA>, IB {
+        }        
         """);
 
     [Test] public Task NewMethods() => SuccessText("""
@@ -240,9 +224,8 @@ public class GeneratorTests
         public interface IB {}
         
         [IntersectionType]
-        public readonly partial struct IA_IB {
-            partial void IsIntersectionOfTypes(IA _, IB _);
-        }
+        public readonly partial struct IA_IB:IIntersectionClass<IA>, IB {
+        }        
         """);
 
     [Test] public Task AbstractMethods() => SuccessText("""
@@ -252,9 +235,8 @@ public class GeneratorTests
         public interface IB {}
         
         [IntersectionType]
-        public readonly partial struct IA_IB {
-            partial void IsIntersectionOfTypes(IA _, IB _);
-        }
+        public readonly partial struct IA_IB:IIntersectionClass<IA>, IB {
+        }        
         """);
 
     [Test] public Task MethodWithMultipleParams() => SuccessText("""
@@ -264,9 +246,8 @@ public class GeneratorTests
         public interface IB {}
         
         [IntersectionType]
-        public readonly partial struct IA_IB {
-            partial void IsIntersectionOfTypes(IA _, IB _);
-        }
+        public readonly partial struct IA_IB:IIntersectionClass<IA>, IB {
+        }                }
         """);
 
     [Test] public Task MethodWithRefParameter() => SuccessText("""
@@ -276,9 +257,8 @@ public class GeneratorTests
         public interface IB {}
         
         [IntersectionType]
-        public readonly partial struct IA_IB {
-            partial void IsIntersectionOfTypes(IA _, IB _);
-        }
+        public readonly partial struct IA_IB:IIntersectionClass<IA>, IB {
+        }        
         """);
 
     [Test] public Task MethodWithReadOnluRefParameter() => SuccessText("""
@@ -288,9 +268,8 @@ public class GeneratorTests
         public interface IB {}
         
         [IntersectionType]
-        public readonly partial struct IA_IB {
-            partial void IsIntersectionOfTypes(IA _, IB _);
-        }
+        public readonly partial struct IA_IB:IIntersectionClass<IA>, IB {
+        }        
         """);
 
     [Test] public Task MethodInParameter() => SuccessText("""
@@ -300,9 +279,8 @@ public class GeneratorTests
         public interface IB {}
         
         [IntersectionType]
-        public readonly partial struct IA_IB {
-            partial void IsIntersectionOfTypes(IA _, IB _);
-        }
+        public readonly partial struct IA_IB:IIntersectionClass<IA>, IB {
+        }        
         """);
 
     [Test] public Task MethodOutParameter() => SuccessText("""
@@ -312,9 +290,8 @@ public class GeneratorTests
         public interface IB {}
         
         [IntersectionType]
-        public readonly partial struct IA_IB {
-            partial void IsIntersectionOfTypes(IA _, IB _);
-        }
+        public readonly partial struct IA_IB:IIntersectionClass<IA>, IB {
+        }                }
         """);
 
     [Test] public Task RefReturns() => SuccessText("""
@@ -324,9 +301,8 @@ public class GeneratorTests
         public interface IB {}
         
         [IntersectionType]
-        public readonly partial struct IA_IB {
-            partial void IsIntersectionOfTypes(IA _, IB _);
-        }
+        public readonly partial struct IA_IB:IIntersectionClass<IA>, IB {
+        }        
         """);
 
     [Test] public Task VoidMethod() => SuccessText("""
@@ -336,9 +312,8 @@ public class GeneratorTests
         public interface IB {}
         
         [IntersectionType]
-        public readonly partial struct IA_IB {
-            partial void IsIntersectionOfTypes(IA _, IB _);
-        }
+        public readonly partial struct IA_IB:IIntersectionClass<IA>, IB {
+        }        
         """);
 
     [Test] public Task ParameterWithDefaultValue() => SuccessText("""
@@ -348,9 +323,8 @@ public class GeneratorTests
         public interface IB {}
         
         [IntersectionType]
-        public readonly partial struct IA_IB {
-            partial void IsIntersectionOfTypes(IA _, IB _);
-        }
+        public readonly partial struct IA_IB:IIntersectionClass<IA>, IB {
+        }        
         """);
 
     [Test] public Task ParameterWithDefaultStringValue() => SuccessText(""""
@@ -360,9 +334,8 @@ public class GeneratorTests
         public interface IB {}
         
         [IntersectionType]
-        public readonly partial struct IA_IB {
-            partial void IsIntersectionOfTypes(IA _, IB _);
-        }
+        public readonly partial struct IA_IB:IIntersectionClass<IA>, IB {
+        }        
         """");
 
     [Test] public Task ParameterWithDefaultStructValue() => SuccessText(""""
@@ -373,9 +346,8 @@ public class GeneratorTests
         public interface IB {}
         
         [IntersectionType]
-        public readonly partial struct IA_IB {
-            partial void IsIntersectionOfTypes(IA _, IB _);
-        }
+        public readonly partial struct IA_IB:IIntersectionClass<IA>, IB {
+        }        
         """");
 
     [Test] public Task ParameterWithDefaultEnumValue() => SuccessText(""""
@@ -386,9 +358,8 @@ public class GeneratorTests
         public interface IB {}
         
         [IntersectionType]
-        public readonly partial struct IA_IB {
-            partial void IsIntersectionOfTypes(IA _, IB _);
-        }
+        public readonly partial struct IA_IB:IIntersectionClass<IA>, IB {
+        }                
         """");
 
     [Test] public Task RefProperty() => SuccessText(""""
@@ -399,9 +370,8 @@ public class GeneratorTests
         public interface IB {}
         
         [IntersectionType]
-        public readonly partial struct IA_IB {
-            partial void IsIntersectionOfTypes(IA _, IB _);
-        }
+        public readonly partial struct IA_IB:IIntersectionClass<IA>, IB {
+        }        
         """");
 
     [Test] public Task CommonProperties() => SuccessText(""""
@@ -412,8 +382,7 @@ public class GeneratorTests
         public interface IB { int I {get;}}
         
         [IntersectionType]
-        public readonly partial struct IA_IB {
-            partial void IsIntersectionOfTypes(IA _, IB _);
-        }
+        public readonly partial struct IA_IB:IIntersectionClass<IA>, IB {
+        }        
         """");
 }

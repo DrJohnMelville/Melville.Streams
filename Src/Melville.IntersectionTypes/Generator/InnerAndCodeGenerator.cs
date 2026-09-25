@@ -14,7 +14,7 @@ namespace Melville.IntersectionTypes.Generator;
 
 public readonly partial struct InnerAndCodeGenerator(
         ISymbol symbol,
-        ImmutableArray<IParameterSymbol> interfaces
+        IList<ITypeSymbol> interfaces
     )
 {
     private readonly StringBuilder sb = new();
@@ -83,7 +83,7 @@ public readonly partial struct InnerAndCodeGenerator(
         var delim = new FirstDifferenceBuffer<string>(":\r\n", ",\r\n");
         foreach (var inter in interfaces)
         {
-           if (inter.Type is not INamedTypeSymbol { TypeKind: TypeKind.Interface } nts) continue;
+           if (inter is not INamedTypeSymbol { TypeKind: TypeKind.Interface } nts) continue;
             sb.Append(delim.Next());
             sb.Append(nts.GlobalName);
         }
@@ -112,12 +112,12 @@ public readonly partial struct InnerAndCodeGenerator(
             """);
         foreach (var child in interfaces)
         {
-            sb.AppendLine($"        typeof({(child.Type as ISymbol).GlobalName}),");
+            sb.AppendLine($"        typeof({child.GlobalName}),");
         }
         sb.AppendLine("    ];");
     }
 
-    private INamedTypeSymbol? FirstType() => interfaces[0].Type as INamedTypeSymbol;
+    private INamedTypeSymbol? FirstType() => interfaces[0] as INamedTypeSymbol;
 
     void DeclareTryFactory()
     {
@@ -145,7 +145,7 @@ public readonly partial struct InnerAndCodeGenerator(
     {
         foreach (var inter in interfaces)
         {
-            if (inter.Type is INamedTypeSymbol sym)
+            if (inter is INamedTypeSymbol sym)
                 DeclareComponentForwarders(sym);
         }
     }

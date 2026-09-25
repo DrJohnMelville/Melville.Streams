@@ -1,21 +1,19 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace Melville.IntersectionTypes.Analyzer;
 
 public readonly struct ParameterVerifier(
     ITypeSymbol argumentType,
-    ImmutableArray<IParameterSymbol> interfaces,
+    IEnumerable<ITypeSymbol> interfaces,
     SyntaxNodeAnalysisContext context)
 {
     public void Check()
     {
-        for (int i = 1; i < interfaces.Length; i++)
-        {
-            CheckSingleType(interfaces[i].Type);
-        }
+        foreach (var inter in interfaces) CheckSingleType(inter);
     }
 
     private void CheckSingleType(ITypeSymbol? desiredInterface)

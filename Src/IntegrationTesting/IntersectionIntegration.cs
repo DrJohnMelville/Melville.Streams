@@ -15,9 +15,8 @@ public interface IB
 public interface C<T> { }
 
 [IntersectionType]
-public readonly partial struct Intersection 
+public readonly partial struct Intersection: IA, IB
 {
-    partial void IsIntersectionOfTypes(IA ia, IB id);
 }
 
 public partial class IntersectionIntegration

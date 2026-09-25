@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Net.Sockets;
@@ -15,7 +16,7 @@ public record struct AndCodeGenerator(StructDeclarationSyntax Declaration, Seman
     {
         var symbol = SemanticModel.GetDeclaredSymbol(Declaration) as INamedTypeSymbol;
         if (symbol is null) throw new InvalidOperationException("Cannot find target symbol.");
-        var components = symbol.GetComponentTypes();
+        var components = symbol.GetComponentTypes().ToArray();
 
         if (components.Length < 2)
         {
@@ -31,30 +32,7 @@ public record struct AndCodeGenerator(StructDeclarationSyntax Declaration, Seman
         string name = engine.TargetFileName();
         string source = engine.ImplementationCode();
 
-        UdpConsole.WriteLine(name);
-        UdpConsole.WriteLine(source);
-
         context.AddSource(name, source);
-    }
-
-    public static class UdpConsole
-    {
-        private static UdpClient? client = null;
-        private static UdpClient Client
-        {
-            get
-            {
-                client ??= new UdpClient();
-                return client;
-            }
-        }
-
-        public static string WriteLine(string str)
-        {
-            var bytes = Encoding.UTF8.GetBytes(str);
-            Client.Send(bytes, bytes.Length, "127.0.0.1", 15321);
-            return str;
-        }
     }
 
     private void CheckComponentTypes(
@@ -76,10 +54,16 @@ public static class GetComponentTypesImpl
 {
     extension (ITypeSymbol symbol)
     {
-        public ImmutableArray<IParameterSymbol> GetComponentTypes() =>
-            (symbol.GetMembers("IsIntersectionOfTypes") is { Length: 1} members &&
-                members[0] is IMethodSymbol member)?
-                member.Parameters:[];
+        public IEnumerable<ITypeSymbol> GetComponentTypes()
+        {
 
+            foreach (var parent in symbol.Interfaces)
+                yield return ExtractType(parent);
+        }
     }
+
+    private static ITypeSymbol ExtractType(ITypeSymbol symbol) =>
+        (symbol is INamedTypeSymbol nts &&
+            symbol.GlobalName.StartsWith("global::Melville.IntersectionTypes.IIntersectionClass<") &&
+            nts.TypeArguments.Length is 1)? nts.TypeArguments[0]: symbol;
 }

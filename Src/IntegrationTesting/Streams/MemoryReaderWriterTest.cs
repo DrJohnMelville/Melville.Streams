@@ -8,15 +8,9 @@ using System.Threading.Tasks;
 namespace IntegrationTesting.Streams;
 
 [IntersectionType]
-public readonly partial struct ReaderTestItem
+public readonly partial struct ReaderTestItem:
+    ISyncReader, IAsyncReader, ISeekableStream, IStreamLength, IStreamPosition
 {
-    partial void IsIntersectionOfTypes(
-        ISyncReader a, 
-        IAsyncReader b, 
-        ISeekableStream seek,
-        IStreamLength c, 
-        IStreamPosition d
-        );
 }
 
 

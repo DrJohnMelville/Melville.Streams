@@ -31,14 +31,25 @@ public class AndTypeAnalyzer : DiagnosticAnalyzer
 
             context.SemanticModel.GetOperation(argument) is IArgumentOperation operation &&
             operation.Parent is IObjectCreationOperation { Arguments.Length : 1} constructorCall &&
-            DesiredTypes(constructorCall.Type) is { Length: > 1 } desired &&
+            DesiredTypes(constructorCall.Type) is { } desired &&
             GetExpressionType(operation.Value) is { } actual)
             new ParameterVerifier(actual, desired, context).Check();
       
     }
-    private ImmutableArray<IParameterSymbol> DesiredTypes(ITypeSymbol? constructedType) => 
-        constructedType is not null ?
-            constructedType.GetComponentTypes() : [];
+    private IEnumerable<ITypeSymbol> DesiredTypes(ITypeSymbol? constructedType)
+    {
+
+        if (constructedType is not null)
+        {
+            foreach (var attr in constructedType.GetAttributes())
+            {
+                if (attr.AttributeClass.GlobalName is 
+                    "global::Melville.IntersectionTypes.IntersectionTypeAttribute")
+                    return constructedType.GetComponentTypes();
+            }
+        }
+        return [];
+    }
 
     ITypeSymbol? GetExpressionType(IOperation value) => value switch
     {

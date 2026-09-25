@@ -65,9 +65,8 @@ public class AnalyzerTest
         public interface IA{}
         public interface IB{}
         public class Inner: IA{}
-        [Melville.IntersectionTypes.IntersectionType()]
+        [Melville.IntersectionTypes.IntersectionType]
         public partial struct Both: IA, IB {
-            partial void IsIntersectionOfTypes(IA ia, IB ib);
                             public Both( IA i){}
         }
         public class A 
