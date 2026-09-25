@@ -16,7 +16,7 @@ public record struct AndCodeGenerator(StructDeclarationSyntax Declaration, Seman
     {
         var symbol = SemanticModel.GetDeclaredSymbol(Declaration) as INamedTypeSymbol;
         if (symbol is null) throw new InvalidOperationException("Cannot find target symbol.");
-        var components = symbol.GetComponentTypes().ToArray();
+        var components = symbol.GetComponentTypes(SemanticModel.Compilation).ToArray();
 
         if (components.Length < 2)
         {
@@ -54,16 +54,16 @@ public static class GetComponentTypesImpl
 {
     extension (ITypeSymbol symbol)
     {
-        public IEnumerable<ITypeSymbol> GetComponentTypes()
+        public IEnumerable<ITypeSymbol> GetComponentTypes(Compilation compilation)
         {
-
+            if (compilation.GetTypeByMetadataName(typeof(IIntersectionClass<>).FullName) is { } marker)
             foreach (var parent in symbol.Interfaces)
-                yield return ExtractType(parent);
+                yield return ExtractType(parent, marker);
         }
     }
 
-    private static ITypeSymbol ExtractType(ITypeSymbol symbol) =>
+    private static ITypeSymbol ExtractType(ITypeSymbol symbol, ITypeSymbol marker) =>
         (symbol is INamedTypeSymbol nts &&
-            symbol.GlobalName.StartsWith("global::Melville.IntersectionTypes.IIntersectionClass<") &&
+            SymbolEqualityComparer.Default.Equals(nts.ConstructedFrom, marker) &&
             nts.TypeArguments.Length is 1)? nts.TypeArguments[0]: symbol;
 }

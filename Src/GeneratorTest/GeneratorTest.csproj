@@ -9,6 +9,107 @@
     <PackageReference Include="Verify.TUnit" />
     <ProjectReference Include="..\Melville.IntersectionTypes\Melville.IntersectionTypes.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="IntersectionTypes\IntersectionGeneratorTests.VoidMethod.verified.txt">
+      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
+    </None>
+    <None Update="IntersectionTypes\IntersectionGeneratorTests.TwoInterfacesWithNoMembers.verified.txt">
+      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
+    </None>
+    <None Update="IntersectionTypes\IntersectionGeneratorTests.TwoInterfacesWithGenericTypes.verified.txt">
+      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
+    </None>
+    <None Update="IntersectionTypes\IntersectionGeneratorTests.StaticMethods.verified.txt">
+      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
+    </None>
+    <None Update="IntersectionTypes\IntersectionGeneratorTests.RefReturns.verified.txt">
+      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
+    </None>
+    <None Update="IntersectionTypes\IntersectionGeneratorTests.RefProperty.verified.txt">
+      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
+    </None>
+    <None Update="IntersectionTypes\IntersectionGeneratorTests.ParameterWithDefaultValue.verified.txt">
+      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
+    </None>
+    <None Update="IntersectionTypes\IntersectionGeneratorTests.ParameterWithDefaultStructValue.verified.txt">
+      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
+    </None>
+    <None Update="IntersectionTypes\IntersectionGeneratorTests.ParameterWithDefaultStringValue.verified.txt">
+      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
+    </None>
+    <None Update="IntersectionTypes\IntersectionGeneratorTests.ParameterWithDefaultEnumValue.verified.txt">
+      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
+    </None>
+    <None Update="IntersectionTypes\IntersectionGeneratorTests.NewMethods.verified.txt">
+      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
+    </None>
+    <None Update="IntersectionTypes\IntersectionGeneratorTests.MultipleEnclosures.verified.txt">
+      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
+    </None>
+    <None Update="IntersectionTypes\IntersectionGeneratorTests.MethodWithRefParameter.verified.txt">
+      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
+    </None>
+    <None Update="IntersectionTypes\IntersectionGeneratorTests.MethodWithReadOnluRefParameter.verified.txt">
+      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
+    </None>
+    <None Update="IntersectionTypes\IntersectionGeneratorTests.MethodWithNoParameters.verified.txt">
+      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
+    </None>
+    <None Update="IntersectionTypes\IntersectionGeneratorTests.MethodWithMultipleParams.verified.txt">
+      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
+    </None>
+    <None Update="IntersectionTypes\IntersectionGeneratorTests.MethodOutParameter.verified.txt">
+      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
+    </None>
+    <None Update="IntersectionTypes\IntersectionGeneratorTests.MethodInParameter.verified.txt">
+      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
+    </None>
+    <None Update="IntersectionTypes\IntersectionGeneratorTests.InterfacesWithMemners.verified.txt">
+      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
+    </None>
+    <None Update="IntersectionTypes\IntersectionGeneratorTests.InterfacesGetAndSet.verified.txt">
+      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
+    </None>
+    <None Update="IntersectionTypes\IntersectionGeneratorTests.IndexerWithSetAndGet.verified.txt">
+      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
+    </None>
+    <None Update="IntersectionTypes\IntersectionGeneratorTests.IgnoreClasses.verified.txt">
+      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
+    </None>
+    <None Update="IntersectionTypes\IntersectionGeneratorTests.GenericIntersection.verified.txt">
+      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
+    </None>
+    <None Update="IntersectionTypes\IntersectionGeneratorTests.EventWithSetAndRemove.verified.txt">
+      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
+    </None>
+    <None Update="IntersectionTypes\IntersectionGeneratorTests.EventWithPrivateRemove.verified.txt">
+      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
+    </None>
+    <None Update="IntersectionTypes\IntersectionGeneratorTests.CommonProperties.verified.txt">
+      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
+    </None>
+    <None Update="IntersectionTypes\IntersectionGeneratorTests.ClassWithPrivateSet.verified.txt">
+      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
+    </None>
+    <None Update="IntersectionTypes\IntersectionGeneratorTests.ClassWithPrivateGetAndSet.verified.txt">
+      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
+    </None>
+    <None Update="IntersectionTypes\IntersectionGeneratorTests.ClassWithPrivateGet.verified.txt">
+      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
+    </None>
+    <None Update="IntersectionTypes\IntersectionGeneratorTests.ClassWithPrivateAndProtectedMethods.verified.txt">
+      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
+    </None>
+    <None Update="IntersectionTypes\IntersectionGeneratorTests.ClassWithInitProperty.verified.txt">
+      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
+    </None>
+    <None Update="IntersectionTypes\IntersectionGeneratorTests.ClassAndInterface.verified.txt">
+      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
+    </None>
+    <None Update="IntersectionTypes\IntersectionGeneratorTests.AbstractMethods.verified.txt">
+      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
+    </None>
+  </ItemGroup>
 	
 	<PropertyGroup>
 		<Verify_SponsorshipExemption>OpenSource</Verify_SponsorshipExemption>

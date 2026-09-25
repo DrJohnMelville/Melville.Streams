@@ -28,24 +28,28 @@ public class AndTypeAnalyzer : DiagnosticAnalyzer
     private void CheckParameter(SyntaxNodeAnalysisContext context)
     {
         if (context.Node is ArgumentSyntax argument &&
-
             context.SemanticModel.GetOperation(argument) is IArgumentOperation operation &&
             operation.Parent is IObjectCreationOperation { Arguments.Length : 1} constructorCall &&
-            DesiredTypes(constructorCall.Type) is { } desired &&
+            DesiredTypes(constructorCall.Type, context.Compilation) is { } desired &&
             GetExpressionType(operation.Value) is { } actual)
             new ParameterVerifier(actual, desired, context).Check();
       
     }
-    private IEnumerable<ITypeSymbol> DesiredTypes(ITypeSymbol? constructedType)
-    {
+    
+    private ITypeSymbol? GetSentinelType(Compilation compilation) =>
+        compilation.GetTypeByMetadataName(typeof(IntersectionTypeAttribute).FullName);
 
-        if (constructedType is not null)
+
+    private IEnumerable<ITypeSymbol> DesiredTypes(ITypeSymbol? constructedType, 
+        Compilation compilation)
+    {
+        if (constructedType is not null &&
+            GetSentinelType(compilation) is { } sentinelType)
         {
             foreach (var attr in constructedType.GetAttributes())
             {
-                if (attr.AttributeClass.GlobalName is 
-                    "global::Melville.IntersectionTypes.IntersectionTypeAttribute")
-                    return constructedType.GetComponentTypes();
+                if (SymbolEqualityComparer.Default.Equals(attr.AttributeClass, sentinelType))
+                    return constructedType.GetComponentTypes(compilation);
             }
         }
         return [];

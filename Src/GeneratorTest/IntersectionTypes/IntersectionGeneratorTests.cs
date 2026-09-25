@@ -6,13 +6,12 @@ using VerifyTUnit;
 
 namespace Test.IntersectionTypes;
 
-public class GeneratorTests
+public class IntersectionGeneratorTests 
 {
-    private static Task SuccessText(string code)
+    protected static Task SuccessText(string code)
     {
         var tb = new GeneratorTestBed(new AndGenerator(), code);
         tb.AssertNoDiagnostics();
-        tb.NoSuchFile("aaa.cs");
 
         return Verifier.Verify(tb.FromName("IA_IB.g.cs").Text());
     }
