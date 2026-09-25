@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using Melville.IntersectionTypes.CodeGen;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,6 @@ using System.Text.RegularExpressions;
 
 namespace Melville.IntersectionTypes.Generator;
 
-
 public readonly partial struct InnerAndCodeGenerator(
         ISymbol symbol,
         IList<ITypeSymbol> interfaces
@@ -20,12 +20,7 @@ public readonly partial struct InnerAndCodeGenerator(
     private readonly StringBuilder sb = new();
     private readonly List<MemberForwarder> forwarders = new();
 
-    public string TargetFileName() =>
-        ReplaceNonFileChars(
-        $"""{symbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)}\{symbol.Name}.g.cs""");
-
-    private string ReplaceNonFileChars(string s) =>
-        Regex.Replace(s, @"[<>]", "_");
+    public string TargetFileName() => FileNamer.FileNameFor(symbol);
 
     public string ImplementationCode()
     {
@@ -33,40 +28,13 @@ public readonly partial struct InnerAndCodeGenerator(
             TypeDeclarationSyntax);
         if (syntax is null) return "// no code generated for non member declaration";
 
-        var levels = WriteTypeDeclaration(syntax, DeclareAncestors);
-        ClassContents();
-        sb.Append(new string('}', levels));
+        using (var _ = new ClassWrapper(sb, syntax, "[System.Runtime.CompilerServices.Union]",
+            interfaces.Where(i => i is INamedTypeSymbol { TypeKind: TypeKind.Interface })))
+        {
+            ClassContents();
+        }
 
         return sb.ToString();
-    }
-
-    private int WriteTypeDeclaration(TypeDeclarationSyntax syntax, Action? writeParents)
-    {
-        var ret = WriteWrapper(syntax.Parent);
-        if (writeParents is not null)
-            sb.AppendLine("[System.Runtime.CompilerServices.Union]");
-        sb.Append($"{syntax.Modifiers} {syntax.Keyword} {syntax.Identifier}{syntax.TypeParameterList}");
-        writeParents?.Invoke();
-        sb.AppendLine();
-        sb.AppendLine("{");
-        return ret + 1;
-    }
-
-    private int WriteWrapper(SyntaxNode? token)
-    {
-
-        switch (token)
-        {
-            case BaseNamespaceDeclarationSyntax ns:
-                sb.AppendLine($"namespace {ns.Name};");
-                return 0;
-            case TypeDeclarationSyntax td:
-                return WriteTypeDeclaration(td, null);
-            case CompilationUnitSyntax:
-            case null: return 0;
-
-        }
-        throw new InvalidDataException($"""Cannot handle containter "{token}".""");
     }
 
 
@@ -78,16 +46,6 @@ public readonly partial struct InnerAndCodeGenerator(
         OutputForwarders();
     }
 
-    private void DeclareAncestors()
-    {
-        var delim = new FirstDifferenceBuffer<string>(":\r\n", ",\r\n");
-        foreach (var inter in interfaces)
-        {
-           if (inter is not INamedTypeSymbol { TypeKind: TypeKind.Interface } nts) continue;
-            sb.Append(delim.Next());
-            sb.Append(nts.GlobalName);
-        }
-    }
     void DeclareConstructor()
     {
         DeclareTypeList();

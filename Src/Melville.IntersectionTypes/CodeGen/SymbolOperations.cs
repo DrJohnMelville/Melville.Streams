@@ -1,14 +1,21 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using Melville.IntersectionTypes.Generator;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 
-namespace Melville.IntersectionTypes.Generator;
+namespace Melville.IntersectionTypes.CodeGen;
 
 public static class SymbolOperations
 {
     extension(ISymbol? sym)
     {
         public string GlobalName => sym?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) ??
+           throw new InvalidOperationException("Cannot find symbol name");
+        public string CSharpName => sym?.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat) ??
            throw new InvalidOperationException("Cannot find symbol name");
     }
 

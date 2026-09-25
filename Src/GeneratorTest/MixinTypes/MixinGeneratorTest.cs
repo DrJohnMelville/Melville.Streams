@@ -25,7 +25,7 @@ internal class MixinGeneratorTest
         
         public readonly struct Mix{}
 
-        public partial class Test_Mix: Melville.IntersectionTypes.IMixin<Mix> {
+        public partial class Test: Melville.IntersectionTypes.IMixin<Mix> {
         }
         """);
 
