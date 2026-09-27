@@ -1,41 +1,53 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using Melville.IntersectionTypes.Generator;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Melville.IntersectionTypes.Analyzer;
 
 public readonly struct ParameterVerifier(
     ITypeSymbol argumentType,
-    IEnumerable<ITypeSymbol> interfaces,
-    SyntaxNodeAnalysisContext context)
+    ITypeSymbol desiredType,
+    Compilation compilation)
 {
-    public void Check()
+    public ITypeSymbol? Check()
     {
-        foreach (var inter in interfaces) CheckSingleType(inter);
-    }
-
-    private void CheckSingleType(ITypeSymbol? desiredInterface)
-    {
-        if (!ArgumentMatchesType(desiredInterface))
+        foreach (var thisInterface in DesiredTypes())
         {
-            context.ReportDiagnostic(
-                Diagnostic.Create(ErrorDeclarations.ParameterLacksType,
-                    context.Node.GetLocation(),
-                    argumentType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat),
-                    desiredInterface?.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)));
+            if (!ArgumentMatchesType(thisInterface)) return thisInterface;
         }
+        return null;
     }
 
     private bool ArgumentMatchesType(ITypeSymbol? desiredInterface)
     {
         if (desiredInterface is null) return true;
-        if (context.Compilation.HasImplicitConversion(argumentType, desiredInterface))
+        if (compilation.HasImplicitConversion(argumentType, desiredInterface))
             return true ;
         foreach (var parent in argumentType.AllInterfaces)
         {
             if (SymbolEqualityComparer.Default.Equals(desiredInterface, parent)) return true;
         }
         return false;
-
     }
+
+    private ITypeSymbol? GetSentinelType() =>
+    compilation.GetTypeByMetadataName(typeof(IntersectionTypeAttribute).FullName);
+
+
+    private IEnumerable<ITypeSymbol> DesiredTypes()
+    {
+        if (desiredType is not null &&
+            GetSentinelType() is { } sentinelType)
+        {
+            foreach (var attr in desiredType.GetAttributes())
+            {
+                if (SymbolEqualityComparer.Default.Equals(attr.AttributeClass, sentinelType))
+                    return desiredType.GetComponentTypes(compilation);
+            }
+        }
+        return [];
+    }
+
 }

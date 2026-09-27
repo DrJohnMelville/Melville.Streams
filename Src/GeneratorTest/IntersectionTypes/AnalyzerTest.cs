@@ -1,8 +1,9 @@
-﻿using System.Threading.Tasks;
-using Melville.IntersectionTypes;
+﻿using Melville.IntersectionTypes;
 using Melville.IntersectionTypes.Analyzer;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
+using System.Threading.Tasks;
 
 namespace GemeratorTest.IntersectionTypes;
 
@@ -13,8 +14,20 @@ public class AnalyzerTest
     private async Task RunDiagnostic(string code, string? arg1 = null, string? arg2 = null)
     {
         verifier.TestCode = code;
+        verifier.SolutionTransforms.Add((solution, projectId) =>
+        {
+            var project = solution.GetProject(projectId);
+            var parseOptions = (CSharpParseOptions)project.ParseOptions;
+
+            // Override the language version to Preview
+            return solution.WithProjectParseOptions(
+                projectId,
+                parseOptions.WithLanguageVersion(LanguageVersion.Preview)
+            );
+        });
+
         verifier.TestState.AdditionalReferences.Add(typeof(IntersectionTypeAttribute).Assembly);
-        
+
         await verifier.RunAsync();
     }
 
@@ -69,6 +82,31 @@ public class AnalyzerTest
         public class A 
         {
             public object Method() => new Both([|new Inner()|]);
+        }
+        """, "Foo", "Bar");
+
+
+    [Test]
+    public Task CheckImplicitObjectCreation() => RunDiagnostic("""
+        namespace System.Runtime.CompilerServices;
+
+        public class UnionAttribute: Attribute {}
+
+        public interface IA{}
+        public interface IB{}
+        public class Inner: IA{}
+        [System.Runtime.CompilerServices.Union]
+        [Melville.IntersectionTypes.IntersectionType]
+        public partial struct Both: IA, IB {
+                            public Both( IA i){}
+                            public object Value {get;}
+        }
+        public class A 
+        {
+            private void M2(Both _) {}
+            public void Method() {
+                 M2([|new Inner()|]);
+            }
         }
         """, "Foo", "Bar");
 }

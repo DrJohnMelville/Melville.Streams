@@ -1,9 +1,11 @@
-﻿using Melville.StreamInterfaces.Memory;
+﻿using Melville.IntersectionTypes;
+using Melville.StreamInterfaces.Memory;
 using Microsoft.Win32.SafeHandles;
 using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using static Melville.StreamInterfaces.Files.FileStreamBase;
 
 namespace Melville.StreamInterfaces.Files;
 
@@ -15,40 +17,44 @@ public class FileStreamBase(SafeFileHandle handle): RandomAccessSeekableStreamBa
     public long Length => RandomAccess.GetLength(handle);
     public void Dispose() => handle.Dispose();
 
-}
-
-public class FileReader(SafeFileHandle handle) : FileStreamBase(handle),
-    IAsyncReader, ISyncReader
-{
-
-    public int Read(Span<byte> buffer) => BumpPosition(RandomAccess.Read(handle, buffer, Position));
-    
-    public async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellation = default) =>
-        BumpPosition(await RandomAccess.ReadAsync(handle, buffer, Position, cancellation));
-
-}
-
-public class FileWriter(SafeFileHandle handle) : FileStreamBase(handle),
-    ISyncWriter, IAsyncWriter
-{
-    public void Write(ReadOnlySpan<byte> buffer)
+    public readonly struct FileStreamRead (FileStreamBase self): IAsyncReader, ISyncReader
     {
-        RandomAccess.Write(handle, buffer, Position);
-        BumpPosition(buffer.Length);
+        public int Read(Span<byte> buffer) => 
+            self.BumpPosition(RandomAccess.Read(self.handle, buffer, self.Position));
+
+        public async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellation = default) =>
+          self.BumpPosition
+            (await RandomAccess.ReadAsync(self.handle, buffer, self.Position, cancellation));
+
     }
 
-    public async ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellation = default)
+    public readonly struct FileStreamWrite(FileStreamBase self)
     {
-        await RandomAccess.WriteAsync(handle, buffer, Position);
-        BumpPosition(buffer.Length);
+        public void Write(ReadOnlySpan<byte> buffer)
+        {
+            RandomAccess.Write(self.handle, buffer, self.Position);
+            self.BumpPosition(buffer.Length);
+        }
+
+        public async ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellation = default)
+        {
+            await RandomAccess.WriteAsync(self.handle, buffer, self.Position);
+            self.BumpPosition(buffer.Length);
+        }
     }
 }
 
-public class FileReaderWriter(SafeFileHandle handle): FileWriter(handle), ISyncReader, IAsyncReader
+public partial class FileReader(SafeFileHandle handle) : 
+    FileStreamBase(handle),IMixin<FileStreamRead>
 {
-    public int Read(Span<byte> buffer) => BumpPosition(RandomAccess.Read(handle, buffer, Position));
 
-    public async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellation = default) =>
-        BumpPosition(await RandomAccess.ReadAsync(handle, buffer, Position, cancellation));
+}
 
+public partial class FileWriter(SafeFileHandle handle) : FileStreamBase(handle), IMixin<FileStreamWrite>
+{
+}
+
+public partial class FileReaderWriter(SafeFileHandle handle): FileWriter(handle),
+    IMixin<FileStreamRead>, IMixin<FileStreamWrite>
+{
 }
