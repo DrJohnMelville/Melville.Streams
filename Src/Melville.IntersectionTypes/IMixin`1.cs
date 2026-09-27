@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Melville.IntersectionTypes;
+﻿namespace Melville.IntersectionTypes;
 
 
 public interface IMixin<T>

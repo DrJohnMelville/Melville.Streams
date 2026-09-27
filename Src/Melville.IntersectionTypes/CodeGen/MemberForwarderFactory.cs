@@ -3,7 +3,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Text;
 
 namespace Melville.IntersectionTypes.CodeGen;

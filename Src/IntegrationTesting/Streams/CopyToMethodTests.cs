@@ -1,9 +1,7 @@
 ﻿using Melville.StreamInterfaces;
 using Melville.StreamInterfaces.Memory;
 using System;
-using System.Drawing;
 using System.Linq;
-using System.Security.Policy;
 using System.Threading.Tasks;
 
 namespace IntegrationTesting.Streams;

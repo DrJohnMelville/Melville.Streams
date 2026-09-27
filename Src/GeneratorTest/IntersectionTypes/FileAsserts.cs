@@ -1,6 +1,4 @@
 ﻿using Microsoft.CodeAnalysis;
-using System;
-using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace Test.IntersectionTypes;

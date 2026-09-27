@@ -1,9 +1,6 @@
 ﻿using Melville.IntersectionTypes.CodeGen;
-using Melville.IntersectionTypes.Generator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace Melville.IntersectionTypes.MixinGenerator;

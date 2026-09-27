@@ -1,7 +1,6 @@
 ﻿using Melville.IntersectionTypes;
 using Melville.StreamInterfaces;
 using Melville.StreamInterfaces.Memory;
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 

@@ -1,6 +1,4 @@
-﻿using Melville.IntersectionTypes;
-using Melville.IntersectionTypes.Generator;
-using System.Runtime.CompilerServices;
+﻿using Melville.IntersectionTypes.Generator;
 using System.Threading.Tasks;
 using VerifyTUnit;
 

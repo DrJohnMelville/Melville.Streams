@@ -1,14 +1,9 @@
 ﻿using Melville.IntersectionTypes.CodeGen;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
-using System.Net.Sockets;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace Melville.IntersectionTypes.Generator;
 

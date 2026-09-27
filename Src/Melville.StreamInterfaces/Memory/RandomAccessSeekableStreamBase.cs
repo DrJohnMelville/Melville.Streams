@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Melville.StreamInterfaces.Memory;
+﻿namespace Melville.StreamInterfaces.Memory;
 
 public class RandomAccessSeekableStreamBase : ISeekableStream, IStreamPosition
 {

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-namespace Melville.IntersectionTypes.Generator;
+﻿namespace Melville.IntersectionTypes.Generator;
 
 public ref struct FirstDifferenceBuffer<T>(T first, T subsequent)
 {

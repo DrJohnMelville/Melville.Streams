@@ -4,9 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Net.Sockets;
-using System.Text;
-using System.Xml.Linq;
 
 namespace Melville.IntersectionTypes.Generator;
 
