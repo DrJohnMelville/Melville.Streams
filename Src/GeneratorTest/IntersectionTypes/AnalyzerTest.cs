@@ -4,7 +4,7 @@ using Melville.IntersectionTypes.Analyzer;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
 
-namespace Test.IntersectionTypes;
+namespace GemeratorTest.IntersectionTypes;
 
 public class AnalyzerTest
 {

@@ -1,11 +1,14 @@
-﻿using System;
+﻿using Melville.IntersectionTypes;
+using Melville.StreamInterfaces.Mixins;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Melville.StreamInterfaces.Memory;
 
-public class MemoryReaderWriter(Memory<byte> store, long usedLength = -1) :
-     MemoryReaderBase(usedLength, store.Length), ISyncWriter, IAsyncWriter
+public partial class MemoryReaderWriter(Memory<byte> store, long usedLength = -1) :
+     MemoryReaderBase(usedLength, store.Length), ISyncWriter, 
+    IMixin<AsyncWriteImmediate>
 {
     public MemoryReaderWriter():this((byte[])[], 0) { }
 
@@ -32,13 +35,6 @@ public class MemoryReaderWriter(Memory<byte> store, long usedLength = -1) :
             store.Span[..(int)Length].CopyTo(newBuffer);
             store = newBuffer;
         }
-    }
-
-    public ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellation = default)
-    {
-        // do not potentially reallocate buffer for a cancelled write.
-        if (!cancellation.IsCancellationRequested) Write(buffer.Span);
-        return ValueTask.CompletedTask;
     }
 
     public Memory<byte> AsMemory() => store.Slice(0, (int)Length);

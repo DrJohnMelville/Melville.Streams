@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Melville.IntersectionTypes;
+using Melville.StreamInterfaces.Mixins;
+using System;
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,8 +9,8 @@ namespace Melville.StreamInterfaces.Memory;
 
 
 [EditorBrowsable(EditorBrowsableState.Never)]
-public abstract class MemoryReaderBase : RandomAccessSeekableStreamBase,
-     IStreamLength, ISyncReader, IAsyncReader
+public abstract partial class MemoryReaderBase : RandomAccessSeekableStreamBase,
+     IStreamLength, ISyncReader, IMixin<AsyncReadImmediate>
 {
 
     protected MemoryReaderBase(long explicitLength, int bufferLen)
@@ -33,5 +35,4 @@ public abstract class MemoryReaderBase : RandomAccessSeekableStreamBase,
 
 
     public ReadOnlySpan<byte> AsReadOnlySpan() => Store[..(int)Length];
-
 }
