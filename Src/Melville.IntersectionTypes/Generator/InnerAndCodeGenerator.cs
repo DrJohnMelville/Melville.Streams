@@ -13,18 +13,18 @@ using System.Text.RegularExpressions;
 namespace Melville.IntersectionTypes.Generator;
 
 public readonly partial struct InnerAndCodeGenerator(
-        ISymbol symbol,
+        INamedTypeSymbol hostSymbol,
         IList<ITypeSymbol> interfaces
     )
 {
     private readonly StringBuilder sb = new();
     private readonly List<MemberForwarder> forwarders = new();
 
-    public string TargetFileName() => FileNamer.FileNameFor(symbol);
+    public string TargetFileName() => FileNamer.FileNameFor(hostSymbol);
 
     public string ImplementationCode()
     {
-        var syntax = (symbol.DeclaringSyntaxReferences[0].GetSyntax() as
+        var syntax = (hostSymbol.DeclaringSyntaxReferences[0].GetSyntax() as
             TypeDeclarationSyntax);
         if (syntax is null) return "// no code generated for non member declaration";
 
@@ -43,7 +43,6 @@ public readonly partial struct InnerAndCodeGenerator(
         DeclareConstructor();
         DeclareTryFactory();
         DeclareMethodForwarders();
-        OutputForwarders();
     }
 
     void DeclareConstructor()
@@ -54,10 +53,10 @@ public readonly partial struct InnerAndCodeGenerator(
         sb.AppendLine($$"""
                 public object Value {get;}
 
-                public {{symbol.Name}} ({{first.GlobalName}} value): this(value, true) =>
+                public {{hostSymbol.Name}} ({{first.GlobalName}} value): this(value, true) =>
                     global::Melville.IntersectionTypes.TypeVerifier.VerifyTypes(Value,
                     _requiredTypes().Slice(1));
-                private {{symbol.Name}} (object value, bool verify) => Value = value;
+                private {{hostSymbol.Name}} (object value, bool verify) => Value = value;
 
             """);
     }
@@ -82,7 +81,7 @@ public readonly partial struct InnerAndCodeGenerator(
         if (FirstType() is not { } first) return;
         sb.Append($$"""
                     public static bool TryCreateFrom(object input, 
-                        out {{((ITypeSymbol)symbol).GlobalName}} value)
+                        out {{((ITypeSymbol)hostSymbol).GlobalName}} value)
                     {
                         if (global::Melville.IntersectionTypes.TypeVerifier.IsValidType(input,
                                _requiredTypes())) 
@@ -103,70 +102,44 @@ public readonly partial struct InnerAndCodeGenerator(
     {
         foreach (var inter in interfaces)
         {
-            if (inter is INamedTypeSymbol sym)
-                DeclareComponentForwarders(sym);
+            if (inter is INamedTypeSymbol componentSymbol)
+            {
+                DeclareComponentForwarders(componentSymbol);
+                GenerateAllMembers(componentSymbol);
+            }
         }
     }
 
-    // we don't generate the component methods of properties, events, or indexers, because
-    // we generate those using higher level constructs
-    private bool IsNotSpecialInternalMethod(ISymbol i) => i.CanBeReferencedByName ||
-        i is IPropertySymbol { IsIndexer: true };
 
-    void DeclareComponentForwarders(INamedTypeSymbol sym)
+    void DeclareComponentForwarders(INamedTypeSymbol componentSymbol)
     {
         sb.AppendLine();
-        GenerateAsMethod(sym);
-        DeclareClassImplicitOperator(sym);
+        sb.AppendLine($"// Forwarers for {componentSymbol.Name}");
+        GenerateAsMethod(componentSymbol);
+        DeclareClassImplicitOperator(componentSymbol);
 
-        GenerateAllMembers(sym);
     }
 
-    private void GenerateAsMethod(INamedTypeSymbol sym) =>
+    private void GenerateAsMethod(INamedTypeSymbol componentSymbol) =>
         sb.AppendLine($"""
-                public {sym.GlobalName} As{sym.Name}() => 
-                    ({sym.GlobalName})this.Value;
+                public {componentSymbol.GlobalName} As{componentSymbol.Name}() => 
+                    ({componentSymbol.GlobalName})this.Value;
             """);
 
-    private void DeclareClassImplicitOperator(INamedTypeSymbol sym)
+    private void DeclareClassImplicitOperator(INamedTypeSymbol componentSymbol)
     {
-        if (sym.TypeKind is not TypeKind.Interface)
+        if (componentSymbol.TypeKind is not TypeKind.Interface)
         {
             sb.AppendLine($"""
-                    public static implicit {sym.GlobalName}({symbol.GlobalName} i) => 
-                        i.As{sym.Name}();
+                    public static implicit {componentSymbol.GlobalName}({hostSymbol.GlobalName} i) => 
+                        i.As{componentSymbol.Name}();
                 """);
 
         }
     }
 
-    private void GenerateAllMembers(INamedTypeSymbol sym)
+    private void GenerateAllMembers(INamedTypeSymbol componentSymbol)
     {
-        var fact = new MemberForwarderFactory(sym.Name);
-        foreach (var member in sym.GetMembers())
-        {
-            if (IsNotSpecialInternalMethod(member) &&
-                fact.Create(member) is { } forwarder)
-                forwarders.Add(forwarder);
-        }
+        new MethodForwardFacade(componentSymbol, hostSymbol, $"As{componentSymbol.Name}()", sb).WriteMethods();
     }
-
-    private void OutputForwarders()
-    {
-        foreach (var forwarder in forwarders.GroupBy(i => i, MemberForwarder.Comparer))
-        {
-            if (forwarder.Count() == 1)
-            {
-                forwarder.First().WriteImplicitForwarder(sb);
-            }
-            else
-            {
-                foreach (var f2 in forwarder)
-                {
-                    f2.WriteExplicitForwarder(sb);
-                }
-            }
-        }
-    }
-
 }

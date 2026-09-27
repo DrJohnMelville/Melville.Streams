@@ -1,21 +1,15 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Reflection.Metadata;
 using System.Text;
-using System.Xml.Linq;
 
-namespace Melville.IntersectionTypes.Generator;
+namespace Melville.IntersectionTypes.CodeGen;
 
 public class MemberForwarder(
     string returnType,
     string body,
     string name,
-    string? parameterTypes,
-    string parentType) 
+    string? parameterTypes) 
 {
     private string name = name;
     private string? parameterTypes = parameterTypes;
@@ -23,11 +17,6 @@ public class MemberForwarder(
     public void WriteImplicitForwarder(StringBuilder sb)
     {
         sb.AppendLine($"    public {returnType} {body}");
-    }
-
-    public void WriteExplicitForwarder(StringBuilder sb)
-    {
-        sb.AppendLine($"    {returnType} {parentType}.{body}");
     }
 
     public static IEqualityComparer<MemberForwarder> Comparer{ get; } = new SameMethod();

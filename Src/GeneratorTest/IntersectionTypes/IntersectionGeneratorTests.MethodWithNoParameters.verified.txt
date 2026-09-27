@@ -30,12 +30,14 @@ global::IB
                 return false;
             }
         }
+// Forwarers for IA
     public global::IA AsIA() => 
         (global::IA)this.Value;
-
-    public global::IB AsIB() => 
-        (global::IB)this.Value;
     public int Public() =>
         AsIA().Public();
 
+
+// Forwarers for IB
+    public global::IB AsIB() => 
+        (global::IB)this.Value;
 }

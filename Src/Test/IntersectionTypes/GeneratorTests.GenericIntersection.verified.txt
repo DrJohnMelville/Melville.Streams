@@ -1,0 +1,38 @@
+﻿namespace NS.A.B;
+public readonly partial struct IA_IB<T1,T2>:
+global::NS.A.B.IA<T1>,
+global::NS.A.B.IB<T2>
+{
+    private static global::System.ReadOnlySpan<global::System.Type> _requiredTypes() =>
+    (global::System.Type[])[
+        typeof(global::NS.A.B.IA<T1>),
+        typeof(global::NS.A.B.IB<T2>),
+    ];
+    public global::NS.A.B.IA<T1> Value {get;}
+
+    public IA_IB (global::NS.A.B.IA<T1> value): this(value, true) =>
+        global::Melville.IntersectionTypes.TypeVerifier.VerifyTypes(Value,
+        _requiredTypes().Slice(1));
+    private IA_IB (global::NS.A.B.IA<T1> value, bool verify) =>
+        Value = value;
+        public static bool TryCreateFrom(object input, 
+            out global::NS.A.B.IA_IB<T1, T2> value)
+        {
+            if (global::Melville.IntersectionTypes.TypeVerifier.IsValidType(input,
+                   _requiredTypes())) 
+            {
+                value = new ((global::NS.A.B.IA<T1>) input, false );
+                return true;
+            }
+            else 
+            {
+                value = default!;
+                return false;
+            }
+        }
+    public global::NS.A.B.IA<T1> AsIA() => 
+        (global::NS.A.B.IA<T1>)this.Value;
+
+    public global::NS.A.B.IB<T2> AsIB() => 
+        (global::NS.A.B.IB<T2>)this.Value;
+}

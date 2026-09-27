@@ -36,11 +36,13 @@ global::NS.A.B.Record.Class.Struct.IB
                 return false;
             }
         }
+// Forwarers for IA
     public global::NS.A.B.Record.Class.Struct.IA AsIA() => 
         (global::NS.A.B.Record.Class.Struct.IA)this.Value;
     public static implicit global::NS.A.B.Record.Class.Struct.IA(global::NS.A.B.Record.Class.Struct.IA_IB i) => 
         i.AsIA();
 
+// Forwarers for IB
     public global::NS.A.B.Record.Class.Struct.IB AsIB() => 
         (global::NS.A.B.Record.Class.Struct.IB)this.Value;
 }}}}

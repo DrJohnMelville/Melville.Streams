@@ -31,9 +31,11 @@ global::NS.A.B.IB
                 return false;
             }
         }
+// Forwarers for IA
     public global::NS.A.B.IA AsIA() => 
         (global::NS.A.B.IA)this.Value;
 
+// Forwarers for IB
     public global::NS.A.B.IB AsIB() => 
         (global::NS.A.B.IB)this.Value;
 }

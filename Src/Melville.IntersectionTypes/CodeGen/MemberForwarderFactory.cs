@@ -1,4 +1,4 @@
-﻿using Melville.IntersectionTypes.CodeGen;
+﻿using Melville.IntersectionTypes.Generator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using System;
@@ -6,9 +6,9 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 
-namespace Melville.IntersectionTypes.Generator;
+namespace Melville.IntersectionTypes.CodeGen;
 
-internal readonly struct MemberForwarderFactory(string targetName)
+internal readonly struct MemberForwarderFactory(string target)
 {
     public MemberForwarder? Create(ISymbol symbol) => symbol switch
     {
@@ -39,7 +39,7 @@ internal readonly struct MemberForwarderFactory(string targetName)
 
         if (ps.GetMethod is { DeclaredAccessibility: Accessibility.Public } gm)
         {
-            sb.AppendLine($"        get => {refPrefix}As{targetName}(){refCall};");
+            sb.AppendLine($"        get => {refPrefix}{target}{refCall};");
             generatedArm = true;
         }
         if (ps.SetMethod is
@@ -48,12 +48,12 @@ internal readonly struct MemberForwarderFactory(string targetName)
                 IsInitOnly: false
             } sm)
         {
-            sb.AppendLine($"        set => As{targetName}(){refCall} = value;");
+            sb.AppendLine($"        set => {target}{refCall} = value;");
             generatedArm = true;
         }
         sb.AppendLine("    }");
 
-        return generatedArm ? new(refPrefix + ps.Type.GlobalName, sb.ToString(), ps.Name, parameterTypes, ps.ContainingType.GlobalName) : null;
+        return generatedArm ? new(refPrefix + ps.Type.GlobalName, sb.ToString(), ps.Name, parameterTypes) : null;
 
     }
 
@@ -68,13 +68,13 @@ internal readonly struct MemberForwarderFactory(string targetName)
         var (arguments, parameterTypes) = ProcessParameterList(ms.Parameters, code);
 
         code.AppendLine(") =>");
-        code.AppendLine($"        {RefArgumentPrefix(ms.RefKind)}As{targetName}().{ms.Name}({arguments});");
+        code.AppendLine($"        {RefArgumentPrefix(ms.RefKind)}{target}.{ms.Name}({arguments});");
 
 
 
         return new MemberForwarder(
             RefParameterPrefix(ms.RefKind) + ms.ReturnType.GlobalName, code.ToString(), ms.Name, 
-            parameterTypes, ms.ContainingType.GlobalName);
+            parameterTypes);
     }
 
 
@@ -144,15 +144,14 @@ internal readonly struct MemberForwarderFactory(string targetName)
         code.AppendLine($$"""{{es.Name}} {""");
         if (es.AddMethod is { })
         {
-            code.AppendLine($"        add => As{targetName}().{es.Name} += value;");
+            code.AppendLine($"        add => {target}.{es.Name} += value;");
         }
         if (es.RemoveMethod is { })
         {
-            code.AppendLine($"        remove => As{targetName}().{es.Name} -= value;");
+            code.AppendLine($"        remove => {target}.{es.Name} -= value;");
         }
         code.AppendLine("    }");
 
-        return new($"event {es.Type}", code.ToString(), es.Name, null,
-            es.ContainingType.GlobalName);
+        return new($"event {es.Type}", code.ToString(), es.Name, null);
     }
 }

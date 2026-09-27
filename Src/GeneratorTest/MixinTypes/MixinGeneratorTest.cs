@@ -1,8 +1,4 @@
-﻿using Melville.IntersectionTypes.Generator;
-using Melville.IntersectionTypes.MixinGenerator;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Melville.IntersectionTypes.MixinGenerator;
 using System.Threading.Tasks;
 using Test.IntersectionTypes;
 using VerifyTUnit;
@@ -20,10 +16,34 @@ internal class MixinGeneratorTest
     }
 
     [Test]
-    public Task NoMixins() => SuccessText("""
+    public Task EmptyMixin() => SuccessText("""
         using Melville.IntersectionTypes;
         
         public readonly struct Mix{}
+
+        public partial class Test: Melville.IntersectionTypes.IMixin<Mix> {
+        }
+        """);
+
+    [Test]
+    public Task MixinWithInterface() => SuccessText("""
+        using Melville.IntersectionTypes;
+
+        public interface IMix {}
+        
+        public readonly struct Mix:IMix{}
+
+        public partial class Test: Melville.IntersectionTypes.IMixin<Mix> {
+        }
+        """);
+
+    [Test]
+    public Task ForwardMethod0() => SuccessText("""
+        using Melville.IntersectionTypes;
+
+        public readonly struct Mix{
+             public float Method(ref int A, out string y);
+        }
 
         public partial class Test: Melville.IntersectionTypes.IMixin<Mix> {
         }

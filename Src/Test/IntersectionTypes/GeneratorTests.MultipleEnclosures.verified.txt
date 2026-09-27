@@ -1,0 +1,45 @@
+﻿namespace NS.A.B;
+public partial record Record
+{
+public partial class Class
+{
+public partial struct Struct
+{
+public readonly partial struct IA_IB:
+global::NS.A.B.Record.Class.Struct.IB
+{
+    private static global::System.ReadOnlySpan<global::System.Type> _requiredTypes() =>
+    (global::System.Type[])[
+        typeof(global::NS.A.B.Record.Class.Struct.IA),
+        typeof(global::NS.A.B.Record.Class.Struct.IB),
+    ];
+    public global::NS.A.B.Record.Class.Struct.IA Value {get;}
+
+    public IA_IB (global::NS.A.B.Record.Class.Struct.IA value): this(value, true) =>
+        global::Melville.IntersectionTypes.TypeVerifier.VerifyTypes(Value,
+        _requiredTypes().Slice(1));
+    private IA_IB (global::NS.A.B.Record.Class.Struct.IA value, bool verify) =>
+        Value = value;
+        public static bool TryCreateFrom(object input, 
+            out global::NS.A.B.Record.Class.Struct.IA_IB value)
+        {
+            if (global::Melville.IntersectionTypes.TypeVerifier.IsValidType(input,
+                   _requiredTypes())) 
+            {
+                value = new ((global::NS.A.B.Record.Class.Struct.IA) input, false );
+                return true;
+            }
+            else 
+            {
+                value = default!;
+                return false;
+            }
+        }
+    public global::NS.A.B.Record.Class.Struct.IA AsIA() => 
+        (global::NS.A.B.Record.Class.Struct.IA)this.Value;
+    public static implicit global::NS.A.B.Record.Class.Struct.IA(global::NS.A.B.Record.Class.Struct.IA_IB i) => 
+        i.AsIA();
+
+    public global::NS.A.B.Record.Class.Struct.IB AsIB() => 
+        (global::NS.A.B.Record.Class.Struct.IB)this.Value;
+}}}}

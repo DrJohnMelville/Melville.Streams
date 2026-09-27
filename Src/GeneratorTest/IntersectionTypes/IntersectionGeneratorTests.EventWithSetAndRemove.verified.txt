@@ -30,14 +30,16 @@ global::IB
                 return false;
             }
         }
+// Forwarers for IA
     public global::IA AsIA() => 
         (global::IA)this.Value;
-
-    public global::IB AsIB() => 
-        (global::IB)this.Value;
     public event EventHandler AE {
         add => AsIA().AE += value;
         remove => AsIA().AE -= value;
     }
 
+
+// Forwarers for IB
+    public global::IB AsIB() => 
+        (global::IB)this.Value;
 }

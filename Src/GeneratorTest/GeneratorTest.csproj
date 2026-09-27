@@ -85,9 +85,6 @@
     <None Update="IntersectionTypes\IntersectionGeneratorTests.EventWithPrivateRemove.verified.txt">
       <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
     </None>
-    <None Update="IntersectionTypes\IntersectionGeneratorTests.CommonProperties.verified.txt">
-      <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
-    </None>
     <None Update="IntersectionTypes\IntersectionGeneratorTests.ClassWithPrivateSet.verified.txt">
       <DependentUpon>IntersectionGeneratorTests.cs</DependentUpon>
     </None>

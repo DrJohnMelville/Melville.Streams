@@ -1,4 +1,4 @@
-﻿using Melville.IntersectionTypes.Generator;
+﻿using Melville.IntersectionTypes.CodeGen;
 using System.Collections.Generic;
 
 namespace Test.IntersectionTypes;
@@ -8,7 +8,7 @@ public class MemberEqualityComparerTest
 {
 
     private static MemberForwarder MF(string name, string? types) =>
-        new("int", "", name, types, "parent");
+        new("int", "", name, types);
 
     private IEnumerable<(MemberForwarder, MemberForwarder, bool)> Cases() => 
         [

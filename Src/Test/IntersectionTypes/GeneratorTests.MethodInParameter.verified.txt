@@ -1,5 +1,4 @@
-﻿[System.Runtime.CompilerServices.Union]
-public readonly partial struct IA_IB:
+﻿public readonly partial struct IA_IB:
 global::IA,
 global::IB
 {
@@ -8,20 +7,20 @@ global::IB
         typeof(global::IA),
         typeof(global::IB),
     ];
-    public object Value {get;}
+    public global::IA Value {get;}
 
     public IA_IB (global::IA value): this(value, true) =>
         global::Melville.IntersectionTypes.TypeVerifier.VerifyTypes(Value,
         _requiredTypes().Slice(1));
-    private IA_IB (object value, bool verify) => Value = value;
-
+    private IA_IB (global::IA value, bool verify) =>
+        Value = value;
         public static bool TryCreateFrom(object input, 
             out global::IA_IB value)
         {
             if (global::Melville.IntersectionTypes.TypeVerifier.IsValidType(input,
                    _requiredTypes())) 
             {
-                value = new (input, false );
+                value = new ((global::IA) input, false );
                 return true;
             }
             else 
@@ -35,12 +34,8 @@ global::IB
 
     public global::IB AsIB() => 
         (global::IB)this.Value;
-    int global::IA.I {
-        get => AsIA().I;
-    }
-
-    int global::IB.I {
-        get => AsIB().I;
-    }
+    public int A(
+        in int a) =>
+        AsIA().A(in a);
 
 }

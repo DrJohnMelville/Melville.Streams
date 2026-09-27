@@ -16,9 +16,10 @@ public readonly struct MixinCodeGenerator(
     private readonly StringBuilder code = new();
     public void Emit() {
         if (parent.DeclaringSyntaxReferences[0].GetSyntax() is not TypeDeclarationSyntax tds) return;
-        using (var _ = new ClassWrapper(code, tds,
-            "", mixin.Interfaces))
-        code.AppendLine("// this is the mixin code");
+        using (var _ = new ClassWrapper(code, tds, "", mixin.Interfaces))
+        {
+            new MethodForwardFacade(mixin, parent, $"(new {mixin.GlobalName}(this))", code).WriteMethods();
+        }
 
         context.AddSource(FileName(), code.ToString());
     }

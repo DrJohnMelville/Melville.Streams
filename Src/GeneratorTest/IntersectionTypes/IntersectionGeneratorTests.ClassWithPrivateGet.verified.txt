@@ -29,15 +29,17 @@ global::IB
                 return false;
             }
         }
+// Forwarers for IA
     public global::IA AsIA() => 
         (global::IA)this.Value;
     public static implicit global::IA(global::IA_IB i) => 
         i.AsIA();
-
-    public global::IB AsIB() => 
-        (global::IB)this.Value;
     public int A {
         set => AsIA().A = value;
     }
 
+
+// Forwarers for IB
+    public global::IB AsIB() => 
+        (global::IB)this.Value;
 }

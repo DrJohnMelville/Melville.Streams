@@ -30,13 +30,15 @@ global::IB
                 return false;
             }
         }
+// Forwarers for IA
     public global::IA AsIA() => 
         (global::IA)this.Value;
-
-    public global::IB AsIB() => 
-        (global::IB)this.Value;
     public int A(
         ref readonly int a) =>
         AsIA().A(ref a);
 
+
+// Forwarers for IB
+    public global::IB AsIB() => 
+        (global::IB)this.Value;
 }

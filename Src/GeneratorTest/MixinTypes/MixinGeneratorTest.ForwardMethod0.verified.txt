@@ -1,0 +1,8 @@
+﻿public partial class Test
+{
+    public float Method(
+        ref int A,
+        out string y) =>
+        (new global::Mix(this)).Method(ref A,out y);
+
+}

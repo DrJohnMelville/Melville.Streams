@@ -373,15 +373,19 @@ public class IntersectionGeneratorTests
         }        
         """");
 
-    [Test] public Task CommonProperties() => SuccessText(""""
+    [Test] public Task AvoidExistingMember() => SuccessText(""""
         using Melville.IntersectionTypes;
                 
         public readonly enum S {A, B, C, D};
-        public interface IA { int I  {get;}}
-        public interface IB { int I {get;}}
+        public interface IA { int I {get;}}
+        public interface IB {}
         
         [IntersectionType]
         public readonly partial struct IA_IB:IIntersectionClass<IA>, IB {
+            public int I {get;}
         }        
         """");
+
+
+
 }
