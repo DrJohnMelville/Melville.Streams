@@ -24,7 +24,7 @@ public record struct AndCodeGenerator(StructDeclarationSyntax Declaration, Seman
                             ));
             return;
         }
-        var engine = new InnerAndCodeGenerator(symbol, components);
+        var engine = new InnerAndCodeGenerator(symbol, components, SemanticModel.Compilation);
 
         string name = engine.TargetFileName();
         string source = engine.ImplementationCode();

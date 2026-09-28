@@ -8,7 +8,7 @@ namespace IntegrationTesting.Streams;
 
 [IntersectionType]
 public readonly partial struct ReaderTestItem:
-    ISyncReader, IAsyncReader, ISeekableStream, IStreamLength, IStreamPosition
+    IAsyncReader, ISyncReader, ISeekableStream, IStreamLength, IStreamPosition
 {
 }
 
@@ -53,7 +53,6 @@ public class MemoryReaderTest: MemoryReaderTestsBase
     private readonly MemoryReader sut = new(
         (byte[])[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
     protected override ReaderTestItem Reader => sut;
-#warning this does not catch the missing componet interface
 
 }
 

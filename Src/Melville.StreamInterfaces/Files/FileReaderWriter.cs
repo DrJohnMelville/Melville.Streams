@@ -54,7 +54,7 @@ public partial class FileWriter(SafeFileHandle handle) : FileStreamBase(handle),
 {
 }
 
-public partial class FileReaderWriter(SafeFileHandle handle): FileWriter(handle),
+public partial class FileReaderWriter(SafeFileHandle handle): FileStreamBase(handle),
     IMixin<FileStreamRead>, IMixin<FileStreamWrite>
 {
 }

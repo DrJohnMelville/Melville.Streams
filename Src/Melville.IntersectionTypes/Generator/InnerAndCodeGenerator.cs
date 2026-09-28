@@ -1,6 +1,7 @@
 ﻿using Melville.IntersectionTypes.CodeGen;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,7 +10,8 @@ namespace Melville.IntersectionTypes.Generator;
 
 public readonly partial struct InnerAndCodeGenerator(
         INamedTypeSymbol hostSymbol,
-        IList<ITypeSymbol> interfaces
+        IList<ITypeSymbol> interfaces,
+        Compilation compilation
     )
 {
     private readonly StringBuilder sb = new();
@@ -23,8 +25,12 @@ public readonly partial struct InnerAndCodeGenerator(
             TypeDeclarationSyntax);
         if (syntax is null) return "// no code generated for non member declaration";
 
+        if (compilation.GetTypeByMetadataName(typeof(IIntersection).FullName) is not { } intersectionInterface)
+            throw new InvalidOperationException("Could not find IIntersection interface.");
+
         using (var _ = new ClassWrapper(sb, syntax, "[System.Runtime.CompilerServices.Union]",
-            interfaces.Where(i => i is INamedTypeSymbol { TypeKind: TypeKind.Interface })))
+            interfaces.Where(i => i is INamedTypeSymbol { TypeKind: TypeKind.Interface }).
+            Append(intersectionInterface)))
         {
             ClassContents();
         }
@@ -48,9 +54,10 @@ public readonly partial struct InnerAndCodeGenerator(
         sb.AppendLine($$"""
                 public object Value {get;}
 
-                public {{hostSymbol.Name}} ({{first.GlobalName}} value): this(value, true) =>
-                    global::Melville.IntersectionTypes.TypeVerifier.VerifyTypes(Value,
-                    _requiredTypes().Slice(1));
+                public {{hostSymbol.Name}} ({{first.GlobalName}} value): 
+                    this(global::Melville.IntersectionTypes.TypeVerifier.Verify(value,
+                    _requiredTypes().Slice(1)), true) {}
+
                 private {{hostSymbol.Name}} (object value, bool verify) => Value = value;
 
             """);
@@ -78,10 +85,10 @@ public readonly partial struct InnerAndCodeGenerator(
                     public static bool TryCreateFrom(object input, 
                         out {{((ITypeSymbol)hostSymbol).GlobalName}} value)
                     {
-                        if (global::Melville.IntersectionTypes.TypeVerifier.IsValidType(input,
-                               _requiredTypes())) 
+                        if (global::Melville.IntersectionTypes.TypeVerifier.TryVerifyType(input,
+                                 _requiredTypes(), out var verified)) 
                         {
-                            value = new (input, false );
+                            value = new (verified, false );
                             return true;
                         }
                         else 
