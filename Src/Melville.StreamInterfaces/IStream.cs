@@ -44,10 +44,4 @@ public static class OperationsForIStream
           (self as IStreamLength)?.Length ??
             throw new InvalidOperationException("Can only use SeekOrigin.End in streams that implement IStreamLength");
     }
-
-    extension (Stream self)
-    {
-        public StreamToInterfaceAdapter AsReaderWriter() =>
-            new StreamToInterfaceAdapter(self);
-    }
 }
