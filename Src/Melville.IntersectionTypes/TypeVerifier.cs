@@ -8,6 +8,9 @@ public static class TypeVerifier
     public static bool TryVerifyType(object item, ReadOnlySpan<Type> types, 
        out object result)
     {
+        if (item is IIntersection intersection)
+            return TryVerifyType(intersection.Value, types, out result);
+
         foreach (var type in types)
         {
             if (!type.IsInstanceOfType(item))
