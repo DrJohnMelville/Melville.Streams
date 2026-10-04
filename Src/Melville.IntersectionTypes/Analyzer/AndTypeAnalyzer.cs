@@ -45,8 +45,9 @@ public class AndTypeAnalyzer : DiagnosticAnalyzer
         if (context.Node is ArgumentSyntax argument &&
             context.SemanticModel.GetOperation(argument) is IArgumentOperation operation &&
             operation.Parent is IObjectCreationOperation { Arguments.Length : 1} constructorCall &&
+            constructorCall.Type is { } desiredType &&
             GetExpressionType(operation.Value) is { } actual &&
-            new ParameterVerifier(actual, constructorCall.Type, context.Compilation).Check() is { } desiredInterface)
+            new ParameterVerifier(actual, desiredType, context.Compilation).Check() is { } desiredInterface)
         {
             context.ReportDiagnostic(
                Diagnostic.Create(ErrorDeclarations.ParameterLacksType,
