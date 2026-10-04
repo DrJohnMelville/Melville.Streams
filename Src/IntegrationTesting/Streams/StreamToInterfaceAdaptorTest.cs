@@ -10,13 +10,16 @@ namespace IntegrationTesting.Streams;
 public class StreamToInterfaceAdaptorTest 
 {
     private readonly Mock<Stream> inner = Stream.Mock();
-    private readonly StreamToInterfaceAdapter sut;
+    private readonly SeekableStreamReaderWriter sut;
     private readonly byte[] buffer = new byte[10];
 
     public StreamToInterfaceAdaptorTest()
     {
+        inner.CanRead.Returns(true);
         inner.CanWrite.Returns(true);
-        sut = inner.Object.AsReaderWriter();
+        inner.CanSeek.Returns(true);
+        inner.CanWrite.Returns(true);
+        sut = inner.Object.AsSeekableStreamReaderWriter();
     }
 
     [Test]

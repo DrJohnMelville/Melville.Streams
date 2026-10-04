@@ -50,7 +50,7 @@ public class AnalyzerTest
         }
         public class A 
         {
-            public object Method() => new Both(new Inner());
+            public object Method() => new Both((IA)new Inner());
         }
         """);
 
@@ -106,6 +106,30 @@ public class AnalyzerTest
             private void M2(Both _) {}
             public void Method() {
                  M2([|new Inner()|]);
+            }
+        }
+        """, "Foo", "Bar"); 
+    
+    [Test]
+    public Task CheckImplicitObjectCreationSucceed() => RunDiagnostic("""
+        namespace System.Runtime.CompilerServices;
+
+        public class UnionAttribute: Attribute {}
+
+        public interface IA{}
+        public interface IB{}
+        public class Inner: IA, IB{}
+        [System.Runtime.CompilerServices.Union]
+        [Melville.IntersectionTypes.IntersectionType]
+        public partial struct Both: IA, IB {
+                            public Both( IA i){}
+                            public object Value {get;}
+        }
+        public class A 
+        {
+            private void M2(Both _) {}
+            public void Method() {
+                 M2(new Inner());
             }
         }
         """, "Foo", "Bar");

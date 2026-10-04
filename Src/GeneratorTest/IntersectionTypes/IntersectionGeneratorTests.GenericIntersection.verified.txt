@@ -2,7 +2,8 @@
 [System.Runtime.CompilerServices.Union]
 public readonly partial struct IA_IB<T1,T2>:
 global::NS.A.B.IA<T1>,
-global::NS.A.B.IB<T2>
+global::NS.A.B.IB<T2>,
+global::Melville.IntersectionTypes.IIntersection
 {
     private static global::System.ReadOnlySpan<global::System.Type> _requiredTypes() =>
     (global::System.Type[])[
@@ -11,18 +12,19 @@ global::NS.A.B.IB<T2>
     ];
     public object Value {get;}
 
-    public IA_IB (global::NS.A.B.IA<T1> value): this(value, true) =>
-        global::Melville.IntersectionTypes.TypeVerifier.VerifyTypes(Value,
-        _requiredTypes().Slice(1));
+    public IA_IB (global::NS.A.B.IA<T1> value): 
+        this(global::Melville.IntersectionTypes.TypeVerifier.Verify(value,
+        _requiredTypes().Slice(1)), true) {}
+
     private IA_IB (object value, bool verify) => Value = value;
 
         public static bool TryCreateFrom(object input, 
             out global::NS.A.B.IA_IB<T1, T2> value)
         {
-            if (global::Melville.IntersectionTypes.TypeVerifier.IsValidType(input,
-                   _requiredTypes())) 
+            if (global::Melville.IntersectionTypes.TypeVerifier.TryVerifyType(input,
+                     _requiredTypes(), out var verified)) 
             {
-                value = new (input, false );
+                value = new (verified, false );
                 return true;
             }
             else 

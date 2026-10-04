@@ -24,7 +24,7 @@ public record struct AndCodeGenerator(StructDeclarationSyntax Declaration, Seman
                             ));
             return;
         }
-        var engine = new InnerAndCodeGenerator(symbol, components);
+        var engine = new InnerAndCodeGenerator(symbol, components, SemanticModel.Compilation);
 
         string name = engine.TargetFileName();
         string source = engine.ImplementationCode();
@@ -53,9 +53,13 @@ public static class GetComponentTypesImpl
     {
         public IEnumerable<ITypeSymbol> GetComponentTypes(Compilation compilation)
         {
-            if (compilation.GetTypeByMetadataName(typeof(IIntersectionClass<>).FullName) is { } marker)
-            foreach (var parent in symbol.Interfaces)
-                yield return ExtractType(parent, marker);
+            if (compilation.GetTypeByMetadataName(typeof(IIntersectionClass<>).FullName) is { } marker &&
+                compilation.GetTypeByMetadataName(typeof(IIntersection).FullName) is { } intersection)
+                foreach (var parent in symbol.Interfaces)
+                {
+                    if (SymbolEqualityComparer.Default.Equals(parent, intersection)) continue;
+                    yield return ExtractType(parent, marker);
+                }
         }
     }
 

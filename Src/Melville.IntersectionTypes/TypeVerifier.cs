@@ -1,24 +1,30 @@
 using System;
+using System.Reflection.Metadata;
 
 namespace Melville.IntersectionTypes;
 
 public static class TypeVerifier
 {
-    public static void VerifyTypes(object item, params ReadOnlySpan<Type> types)
+    public static bool TryVerifyType(object item, ReadOnlySpan<Type> types, 
+       out object result)
     {
-        if (InvalidType(item, types) is { } typeName)
-         throw new ArgumentException($"{item} does not implement {typeName}.");
-    }
+        if (item is IIntersection intersection)
+            return TryVerifyType(intersection.Value, types, out result);
 
-    public static bool IsValidType(object item, params ReadOnlySpan<Type> types) =>
-        InvalidType(item, types) is null;
-    private static string? InvalidType (object item, params ReadOnlySpan<Type> types)
-    {
         foreach (var type in types)
         {
             if (!type.IsInstanceOfType(item))
-                return type.Name;
+            {
+                result = type.Name;
+                return false;
+            }
         }
-        return null;
+        result = item;
+        return true;
+    }
+    public static object Verify(object item, ReadOnlySpan<Type> types)
+    {
+        if (TryVerifyType(item, types, out var ret)) return ret!;
+        throw new ArgumentException($"{item} does not implement {ret}.");
     }
 }

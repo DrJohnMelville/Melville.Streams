@@ -12,17 +12,29 @@ public interface IB
     public int Plus1(int i);
 }
 
-public interface C<T> { }
+public interface IC<T> { }
 
 [IntersectionType]
 public readonly partial struct Intersection: IA, IB
 {
 }
 
+[IntersectionType]
+public readonly partial struct ExpandedIntersection: IC<string>, IA, IB { }
+
 public partial class IntersectionIntegration
 {
 
     private readonly Mock<IA> source = Mock.Of<IA, IB>();
+
+    [Test]
+    public void AssignmentOfCompatibleIntersectionsUsesOriginalObject()
+    {
+        var expandedSource = Mock.Of<IC<string>, IA, IB>();
+        ExpandedIntersection.TryCreateFrom(expandedSource.Object, out var middle).Should().BeTrue();
+        Intersection final = middle;
+        final.Value.Should().BeSameAs(expandedSource.Object);
+    }
 
     [Test]
     public void ForwardingMethods()

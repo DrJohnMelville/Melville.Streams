@@ -28,7 +28,7 @@ public class AndTypeAnalyzer : DiagnosticAnalyzer
     {
         if (context.Operation is IConversionOperation operation &&
             operation.Type is { } desired &&
-            operation.Operand.Type is { } actual &&
+            GetOperandType(operation) is { } actual &&
             new ParameterVerifier(actual, desired, context.Compilation).Check() is { } desiredInterface
             )
         {
@@ -40,14 +40,17 @@ public class AndTypeAnalyzer : DiagnosticAnalyzer
         }
     }
 
+    public ITypeSymbol? GetOperandType(IConversionOperation op) =>
+        (op.Operand is IConversionOperation innerOp) ? GetOperandType(innerOp) : op.Operand.Type;
+
     private void CheckParameter(SyntaxNodeAnalysisContext context)
     {
         if (context.Node is ArgumentSyntax argument &&
             context.SemanticModel.GetOperation(argument) is IArgumentOperation operation &&
             operation.Parent is IObjectCreationOperation { Arguments.Length : 1} constructorCall &&
-            constructorCall.Type is { } desiredType &&
+            constructorCall.Type is { } constructedType &&
             GetExpressionType(operation.Value) is { } actual &&
-            new ParameterVerifier(actual, desiredType, context.Compilation).Check() is { } desiredInterface)
+            new ParameterVerifier(actual, constructedType, context.Compilation).Check() is { } desiredInterface)
         {
             context.ReportDiagnostic(
                Diagnostic.Create(ErrorDeclarations.ParameterLacksType,
