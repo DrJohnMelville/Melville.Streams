@@ -1,6 +1,6 @@
 ﻿namespace Melville.IntersectionTypes.Generator;
 
-public ref struct FirstDifferenceBuffer<T>(T first, T subsequent)
+internal ref struct FirstDifferenceBuffer<T>(T first, T subsequent)
 {
     private T next = first;
     public T Next()

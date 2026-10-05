@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Melville.IntersectionTypes.Analyzer;
 
-public readonly struct ParameterVerifier(
+internal readonly struct ParameterVerifier(
     ITypeSymbol argumentType,
     ITypeSymbol desiredType,
     Compilation compilation)

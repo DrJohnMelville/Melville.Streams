@@ -10,13 +10,17 @@ using System.Collections.Immutable;
 
 namespace Melville.IntersectionTypes.Analyzer;
 
+/// <summary>
+/// This analyzer provides strong typing for the intersection types.
+/// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class AndTypeAnalyzer : DiagnosticAnalyzer
 {
-
+    /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
         [ErrorDeclarations.ParameterLacksType];
 
+    /// <inheritdoc />
     public override void Initialize(AnalysisContext context)
     {
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
@@ -40,7 +44,7 @@ public class AndTypeAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    public ITypeSymbol? GetOperandType(IConversionOperation op) =>
+    ITypeSymbol? GetOperandType(IConversionOperation op) =>
         (op.Operand is IConversionOperation innerOp) ? GetOperandType(innerOp) : op.Operand.Type;
 
     private void CheckParameter(SyntaxNodeAnalysisContext context)

@@ -3,7 +3,7 @@ using System;
 
 namespace Melville.IntersectionTypes.CodeGen;
 
-public static class SymbolOperations
+internal static class SymbolOperations
 {
     extension(ISymbol? sym)
     {

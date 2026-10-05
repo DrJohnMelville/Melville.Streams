@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace Melville.IntersectionTypes.CodeGen;
 
-public static class FileNamer
+internal static class FileNamer
 {
     public static string FileNameFor(ISymbol sym) =>
                 ReplaceNonFileChars($"""{sym.CSharpName}\{sym.Name}.g.cs""");

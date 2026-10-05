@@ -8,7 +8,7 @@ using System.Text;
 
 namespace Melville.IntersectionTypes.CodeGen;
 
-public class ClassWrapper : IDisposable
+internal class ClassWrapper : IDisposable
 {
     public void Dispose() => sb.Append(new string('}', levels));
     private readonly StringBuilder sb;

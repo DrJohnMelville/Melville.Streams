@@ -4,9 +4,13 @@ using System.Threading;
 
 namespace Melville.IntersectionTypes.Generator;
 
+/// <summary>
+/// Generates the intersection types.
+/// </summary>
 [Generator]
 public class AndGenerator : IIncrementalGenerator
 {
+    /// <inheritdoc />
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         context.RegisterSourceOutput(

@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace Melville.IntersectionTypes.Generator;
 
-public record struct AndCodeGenerator(StructDeclarationSyntax Declaration, SemanticModel SemanticModel)
+internal record struct AndCodeGenerator(StructDeclarationSyntax Declaration, SemanticModel SemanticModel)
 {
     public void Generate(SourceProductionContext context)
     {
@@ -47,7 +47,7 @@ public record struct AndCodeGenerator(StructDeclarationSyntax Declaration, Seman
     }
 }
 
-public static class GetComponentTypesImpl
+internal static class GetComponentTypesImpl
 {
     extension (ITypeSymbol symbol)
     {

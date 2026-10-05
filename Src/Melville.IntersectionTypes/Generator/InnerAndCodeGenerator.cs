@@ -8,7 +8,7 @@ using System.Text;
 
 namespace Melville.IntersectionTypes.Generator;
 
-public readonly partial struct InnerAndCodeGenerator(
+internal readonly partial struct InnerAndCodeGenerator(
         INamedTypeSymbol hostSymbol,
         IList<ITypeSymbol> interfaces,
         Compilation compilation

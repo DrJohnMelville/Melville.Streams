@@ -6,11 +6,24 @@ using System.Threading.Tasks;
 
 namespace Melville.StreamInterfaces;
 
+/// <summary>
+/// Implements copying IReaders to IWriters/
+/// </summary>
 public static class CopyToImplementations
 {
     extension (ISyncReader self)
     {
+        /// <summary>
+        /// Copy this reader to the giver writer, writing synchronously.
+        /// </summary>
+        /// <param name="writer">The writer to write to.</param>
         public void CopyTo(ISyncWriter writer) => self.CopyTo(writer, self.DesiredCopyBufferSize());
+
+        /// <summary>
+        /// Copy this reader to the giver writer, writing synchronously.
+        /// </summary>
+        /// <param name="writer">The writer to write to.</param>
+        /// <param name="desiredBuffer">The buffer size to use in the copying.</param>
         public void CopyTo(ISyncWriter writer, int desiredBuffer)
         {
             var buffer = ArrayPool<byte>.Shared.Rent(desiredBuffer);
@@ -32,8 +45,20 @@ public static class CopyToImplementations
 
     extension (IAsyncReader self)
     {
+        /// <summary>
+        /// Copy this reader to a writer, writing asynchronously
+        /// </summary>
+        /// <param name="writer">The writer to write to.</param>
+        /// <param name="cancel">A cancellation token</param>
         public ValueTask CopyToAsync(IAsyncWriter writer, CancellationToken cancel = default) =>
             self.CopyToAsync(writer, self.DesiredCopyBufferSize(), cancel);
+
+        /// <summary>
+        /// Copy this reader to a writer, writing asynchronously
+        /// </summary>
+        /// <param name="writer">The writer to write to.</param>
+        /// <param name="bufferSize">Size of buffer to use in the copy operation./</param>
+        /// <param name="cancel">A cancellation token</param>
         public async ValueTask CopyToAsync(
             IAsyncWriter writer, int bufferSize, CancellationToken cancel = default)
         {
@@ -62,6 +87,10 @@ public static class CopyToImplementations
     }
     private static void Swap<T>(ref T a, ref T b) => (a, b) = (b, a);
 
+}
+
+internal static class CopyHelpers
+{
     // This value was originally picked to be the largest multiple of 4096 that is still smaller than the large object heap threshold (85K).
     // The CopyTo{Async} buffer is short-lived and is likely to be collected at Gen0, and it offers a significant improvement in Copy
     // performance.  Since then, the base implementations of CopyTo{Async} have been updated to use ArrayPool, which will end up rounding
@@ -97,5 +126,4 @@ public static class CopyToImplementations
                     );
         }
     }
-
 }

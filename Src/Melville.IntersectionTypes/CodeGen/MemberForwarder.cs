@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 
 namespace Melville.IntersectionTypes.CodeGen;
 
-public class MemberForwarder(
+internal class MemberForwarder(
     string returnType,
     string body,
     string name,

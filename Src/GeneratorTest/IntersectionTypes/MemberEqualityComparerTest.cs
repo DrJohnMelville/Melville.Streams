@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Test.IntersectionTypes;
 
 
-public class MemberEqualityComparerTest
+internal class MemberEqualityComparerTest
 {
 
     private static MemberForwarder MF(string name, string? types) =>

@@ -5,15 +5,43 @@ using System.IO;
 namespace Melville.StreamInterfaces.Files;
 
 
+/// <summary>
+/// This factory creates file system streams using a fluent interface.
+/// </summary>
 public static class FileIStreamFactory
 {
+    /// <summary>
+    /// This factory intermediate is used to create file streams with various reading and 
+    /// writing capabilities.  All file streams are seekable, with position and length.
+    /// </summary>
+    /// <param name="creator"></param>
     public readonly struct FileCreateStub (Func<FileAccess, SafeFileHandle> creator)
     {
+        /// <summary>
+        /// Create a reader stream that supports synchronous and asynchronous reading.
+        /// </summary>
         public FileReader Reader() => new(creator(FileAccess.Read));
+        /// <summary>
+        /// Create a writer stream that supports synchronous and asynchronous writer.
+        /// </summary>
         public FileWriter Writer() => new(creator(FileAccess.Write));
+        /// <summary>
+        /// Create a reader / writer stream that supports synchronous and asynchronous 
+        /// reading or writing.
+        /// </summary>
         public FileReaderWriter ReaderWriter() => new(creator(FileAccess.ReadWrite));
     }
 
+    /// <summary>
+    /// Create a file stream with the given information.
+    /// </summary>
+    /// <param name="path">Path of the file to open.</param>
+    /// <param name="mode">FileMode with which to open the file.</param>
+    /// <param name="share">File sharing options</param>
+    /// <param name="options">Other file options</param>
+    /// <param name="preallocationSize">When creating files, hint to the operating system
+    /// about the expected size of the file.</param>
+    /// <returns></returns>
     public static FileCreateStub 
         File(string path, 
              FileMode mode = FileMode.Open, 
@@ -37,20 +65,36 @@ public static class FileIStreamFactory
         }
     }
 
-    public static AnonymousPipePair AnonymousPipe(bool allowAsync) => new AnonymousPipePair(allowAsync);
+    /// <summary>
+    /// Create an anonymous pipe with associated reader and writer.
+    /// </summary>
+    /// <param name="allowAsync">Allow async operations</param>
+    /// <returns>A structure containing the reader and writer for the anonymous pipe.</returns>
+    public static AnonymousPipePair AnonymousPipe(bool allowAsync = true) => new AnonymousPipePair(allowAsync);
 
+    /// <summary>
+    /// This structure represents a reader / writer pair for an anonymous pipe.
+    /// </summary>
     public readonly struct AnonymousPipePair: IDisposable
     {
+        /// <summary>
+        /// The reader end of the pipe.
+        /// </summary>
         public FileReader Reader { get; }
+
+        /// <summary>
+        /// The writer end of the pipe.
+        /// </summary>
         public FileWriter Writer { get; }
 
-        public AnonymousPipePair(bool allowAsync)
+        internal AnonymousPipePair(bool allowAsync)
         {
             SafeFileHandle.CreateAnonymousPipe(out var readHandle, out var writeHandle, allowAsync);
             Reader = new FileReader(readHandle);
             Writer = new FileWriter(writeHandle);
         }
-
+        
+        /// <inheritdoc/>
         public void Dispose()
         {
             Writer.Dispose();

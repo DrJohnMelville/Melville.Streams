@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Melville.IntersectionTypes.MixinGenerator;
 
-public readonly struct MixinCodeGenerator(
+internal readonly struct MixinCodeGenerator(
     INamedTypeSymbol parent,
     INamedTypeSymbol mixin,
     SourceProductionContext context)

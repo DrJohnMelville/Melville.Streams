@@ -10,10 +10,15 @@ using static Melville.StreamInterfaces.Files.FileStreamBase;
 namespace Melville.StreamInterfaces.Files;
 
 
+/// <summary>
+/// This is the base of the file stream classes, and implements seek, length, and position
+/// </summary>
+/// <param name="handle">Windows file handle corresponding to the file.</param>
 public class FileStreamBase(SafeFileHandle handle): RandomAccessSeekableStreamBase,
     IStreamLength, IDisposable
 {
-    protected readonly SafeFileHandle handle = handle;
+    protected internal readonly SafeFileHandle handle = handle;
+
     public long Length => RandomAccess.GetLength(handle);
     public void Dispose() => handle.Dispose();
 

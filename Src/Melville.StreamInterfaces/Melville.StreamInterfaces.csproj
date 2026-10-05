@@ -1,5 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-	
+	<PropertyGroup>
+		<Title>Melville.StreamInterfaces</Title>
+		<PackageDescription>Stream replacement class that uses multiple interfaces and intersection so that streams
+		capabalities are expressed as interfaces and enforced by the compiler.</PackageDescription>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+	</PropertyGroup>
 	<ItemGroup>
 	  <PackageReference Include="Melville.Generators.INPC" />
 	</ItemGroup>

@@ -2,7 +2,7 @@
 
 namespace Melville.IntersectionTypes;
 
-public static class ErrorDeclarations
+internal static class ErrorDeclarations
 {
     public static readonly DiagnosticDescriptor ParameterLacksType = new(
     id: "And0001",

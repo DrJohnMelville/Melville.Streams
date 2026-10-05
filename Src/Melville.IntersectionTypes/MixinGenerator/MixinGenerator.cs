@@ -4,9 +4,24 @@ using System.Threading;
 
 namespace Melville.IntersectionTypes.MixinGenerator;
 
+
+/// <summary>
+/// This generates a class with mixins specified as parents.
+/// thus:
+/// public partial class Child: IMixin&lt;MixStruct&gt;
+/// {
+/// }
+/// 
+/// public readonly struct MixStruct(Child inner) {
+///     public void MethodToForward();
+/// }
+/// 
+/// Note the constructor on the mixin struct which provides context to the mixin.
+/// </summary>
 [Generator]
 public class MixinGenerator : IIncrementalGenerator
 {
+    /// <inheritdoc/>
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         context.RegisterSourceOutput(
@@ -59,7 +74,7 @@ public class MixinGenerator : IIncrementalGenerator
     }
 }
 
-public record struct MixinGenerationRequest(INamedTypeSymbol? Parent, INamedTypeSymbol? Mixin)
+internal record struct MixinGenerationRequest(INamedTypeSymbol? Parent, INamedTypeSymbol? Mixin)
 {
 
 }

@@ -4,6 +4,11 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<IsRoslynComponent>true</IsRoslynComponent>
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+
+		<Title>Melville.IntersectionTypes</Title>
+		<PackageDescription>Generate intersection type wrappers, which ensure a class implements a set of interfaces.</PackageDescription>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	</PropertyGroup>
 
 	<ItemGroup>

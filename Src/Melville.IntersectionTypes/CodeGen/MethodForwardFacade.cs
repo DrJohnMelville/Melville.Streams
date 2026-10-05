@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Melville.IntersectionTypes.CodeGen;
 
-public readonly struct MethodForwardFacade
+internal readonly struct MethodForwardFacade
 {
     public readonly INamedTypeSymbol source;
     public readonly StringBuilder sb;
