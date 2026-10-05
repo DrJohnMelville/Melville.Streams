@@ -1,2 +1,2 @@
 ﻿global using TUnit.Mocks;
-global using FluentAssertions;
+global using AwesomeAssertions;
