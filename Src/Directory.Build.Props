@@ -10,7 +10,7 @@
         <AnalysisLevel>latest</AnalysisLevel>
         <RepositoryUrl>https://github.com/DrJohnMelville/Melville.Streams</RepositoryUrl>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<NoWarn>NU1701</NoWarn>
+		<NoWarn>NU1701;CRR0029</NoWarn>
     </PropertyGroup>
 
 	<Target Name="CopyPackage" AfterTargets="Pack">
