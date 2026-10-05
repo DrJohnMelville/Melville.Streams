@@ -48,7 +48,7 @@ public static class ReadAtLeastImplementations
             return total;
         }
 
-        public ValueTask<int> ReadExactAsync(Memory<byte> buffer, CancellationToken cancel = default) =>
-            self.ReadAtLeastAsync(buffer, buffer.Length, cancel, true);
+        public ValueTask<int> ReadExactAsync(Memory<byte> buffer, CancellationToken cancel = default, bool throwEndOfStream = true) =>
+            self.ReadAtLeastAsync(buffer, buffer.Length, cancel, throwEndOfStream);
     }
 }

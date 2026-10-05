@@ -1,6 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	
 	<ItemGroup>
+	  <PackageReference Include="Melville.Generators.INPC" />
+	</ItemGroup>
+	
+	<ItemGroup>
 		<ProjectReference Include="..\Melville.IntersectionTypes\Melville.IntersectionTypes.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="true" />
 	</ItemGroup>
 </Project>
