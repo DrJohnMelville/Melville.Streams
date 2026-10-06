@@ -17,12 +17,17 @@ namespace Melville.StreamInterfaces.Files;
 public class FileStreamBase(SafeFileHandle handle): RandomAccessSeekableStreamBase,
     IStreamLength, IDisposable
 {
+    /// <summary>
+    /// A windows file handle representing the file.
+    /// </summary>
     protected internal readonly SafeFileHandle handle = handle;
 
+    /// <inheritdoc/>
     public long Length => RandomAccess.GetLength(handle);
+    /// <inheritdoc/>
     public void Dispose() => handle.Dispose();
 
-    public readonly struct FileStreamRead (FileStreamBase self): IAsyncReader, ISyncReader
+    internal readonly struct FileStreamRead (FileStreamBase self): IAsyncReader, ISyncReader
     {
         public int Read(Span<byte> buffer) => 
             self.BumpPosition(RandomAccess.Read(self.handle, buffer, self.Position));
@@ -33,7 +38,7 @@ public class FileStreamBase(SafeFileHandle handle): RandomAccessSeekableStreamBa
 
     }
 
-    public readonly struct FileStreamWrite(FileStreamBase self)
+    internal readonly struct FileStreamWrite(FileStreamBase self)
     {
         public void Write(ReadOnlySpan<byte> buffer)
         {
@@ -49,16 +54,28 @@ public class FileStreamBase(SafeFileHandle handle): RandomAccessSeekableStreamBa
     }
 }
 
+/// <summary>
+/// Represents a file stream that supports only reading.
+/// </summary>
+/// <param name="handle">A windows file handle representing the file.</param>
 public partial class FileReader(SafeFileHandle handle) : 
     FileStreamBase(handle),IMixin<FileStreamRead>
 {
 
 }
 
+/// <summary>
+/// Represents a file stream that supports only writing.
+/// </summary>
+/// <param name="handle">A windows file handle representing the file.</param>
 public partial class FileWriter(SafeFileHandle handle) : FileStreamBase(handle), IMixin<FileStreamWrite>
 {
 }
 
+/// <summary>
+/// Represents a file stream that supports reading and writing.
+/// </summary>
+/// <param name="handle">A windows file handle representing the file.</param>
 public partial class FileReaderWriter(SafeFileHandle handle): FileStreamBase(handle),
     IMixin<FileStreamRead>, IMixin<FileStreamWrite>
 {
