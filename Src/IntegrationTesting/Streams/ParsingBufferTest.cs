@@ -2,6 +2,7 @@
 using Melville.StreamInterfaces;
 using Melville.StreamInterfaces.ParsingBuffers;
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -75,9 +76,11 @@ public class ParsingBufferTest : IDisposable
     public async Task NoMoreBytesAvailable()
     {
         source.Length = 0;
+        sut.DoneReadingSource.Should().BeFalse();
         (await sut.TryEnsureBytesAsync(12)).Should().Be(0);
+        sut.DoneReadingSource.Should().BeTrue();
         await sut.Awaiting(i => i.EnsureBytesAsync(12)).Should()
-            .ThrowAsync<InvalidOperationException>();
+            .ThrowAsync<EndOfStreamException>();
     }
 
     [Test]
@@ -90,7 +93,7 @@ public class ParsingBufferTest : IDisposable
         sut.Peek().ToArray().Should().BeEquivalentTo([
             3, 4,5,6,7,8,9,10,11,12,13,14,15]);
         sut.Advance(4);
-        sut.RelativePosition.Should().Be(4);
+        sut.RelativePosition.Should().Be(107);
         sut.CurrentLength.Should().Be(9);
         sut.Peek().ToArray().Should().BeEquivalentTo([
             7,8,9,10,11,12,13,14,15]);
@@ -145,7 +148,7 @@ public class ParsingBufferTest : IDisposable
         buffer.Should().BeEquivalentTo([4, 5, 6, 7]);
 
         await sut.Awaiting(i => i.FillExternalBufferAsync(buffer)).Should().
-            ThrowExactlyAsync<InvalidOperationException>();
+            ThrowExactlyAsync<EndOfStreamException>();
     }
 
     [Test]

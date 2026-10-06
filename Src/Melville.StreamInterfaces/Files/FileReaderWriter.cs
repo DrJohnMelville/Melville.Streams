@@ -29,9 +29,20 @@ public class FileStreamBase(SafeFileHandle handle): RandomAccessSeekableStreamBa
 
     internal readonly struct FileStreamRead (FileStreamBase self): IAsyncReader, ISyncReader
     {
+        /// <summary>
+        /// Read from the stream into the buffer synchronously.
+        /// </summary>
+        /// <param name="buffer">The buffer to place bytes into.</param>
+        /// <returns>Number of bytes read.</returns>
         public int Read(Span<byte> buffer) => 
             self.BumpPosition(RandomAccess.Read(self.handle, buffer, self.Position));
 
+        /// <summary>
+        /// Read bytes from the stream into the buffer asynchronously.
+        /// </summary>
+        /// <param name="buffer">The buffer to fill with the requested data.</param>
+        /// <param name="cancellation">A cancellation token</param>
+        /// <returns>The number of bytes read.</returns>
         public async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellation = default) =>
           self.BumpPosition
             (await RandomAccess.ReadAsync(self.handle, buffer, self.Position, cancellation));
@@ -40,12 +51,22 @@ public class FileStreamBase(SafeFileHandle handle): RandomAccessSeekableStreamBa
 
     internal readonly struct FileStreamWrite(FileStreamBase self)
     {
+        /// <summary>
+        /// Write data to the stream synchronously.
+        /// </summary>
+        /// <param name="buffer">The data to write to the stream.</param>
         public void Write(ReadOnlySpan<byte> buffer)
         {
             RandomAccess.Write(self.handle, buffer, self.Position);
             self.BumpPosition(buffer.Length);
         }
 
+        /// <summary>
+        /// Write data to a stream asynchronously.
+        /// </summary>
+        /// <param name="buffer">The data to write to the stream.</param>
+        /// <param name="cancellation"></param>
+        /// <returns></returns>
         public async ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellation = default)
         {
             await RandomAccess.WriteAsync(self.handle, buffer, self.Position);

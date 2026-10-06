@@ -49,4 +49,19 @@ internal class MixinGeneratorTest
         }
         """);
 
+    [Test]
+    public Task CopyDocComment() => SuccessText("""
+        using Melville.IntersectionTypes;
+
+        public readonly struct Mix{
+             ///<summary>
+             ///  This is a Doc Comment!
+             ///</summary>
+             public float Method(ref int A, out string y);
+        }
+
+        public partial class Test: Melville.IntersectionTypes.IMixin<Mix> {
+        }
+        """);
+
 }

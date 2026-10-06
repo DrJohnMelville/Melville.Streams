@@ -8,14 +8,25 @@ using System.Threading.Tasks;
 
 namespace Melville.StreamInterfaces.Streams;
 
+/// <summary>
+/// Extension method for creating a Stream from an IStream Interface
+/// </summary>
 public static class IStreamExtension
 {
     extension (IStream self)
     {
+        /// <summary>
+        /// Wrap an IStream in a C# stream
+        /// </summary>
+        /// <returns>The stream inteface wrapping the source IStream</returns>
         public Stream AsStream() => new InterfaceToStreamAdapter(self);
     }
 }
 
+/// <summary>
+/// Base class for various adapter that wrap a stream and provide various capabilities.
+/// </summary>
+/// <param name="inner">The stream to be wrapped</param>
 internal class InterfaceToStreamAdapter(IStream inner): Stream
 {
     protected override void Dispose(bool disposing) => (inner as IDisposable)?.Dispose();

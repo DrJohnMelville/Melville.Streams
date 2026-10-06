@@ -8,7 +8,7 @@ internal class MemberEqualityComparerTest
 {
 
     private static MemberForwarder MF(string name, string? types) =>
-        new("int", "", name, types);
+        new("int", "", name, types, null!);
 
     private IEnumerable<(MemberForwarder, MemberForwarder, bool)> Cases() => 
         [

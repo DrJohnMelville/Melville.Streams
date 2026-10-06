@@ -1,0 +1,13 @@
+﻿public partial class Test
+{
+    ///<member name="M:Mix.Method(System.Int32@,System.String@)">
+    ///    <summary>
+    ///      This is a Doc Comment!
+    ///    </summary>
+    ///</member>
+    public float Method(
+        ref int A,
+        out string y) =>
+        (new global::Mix(this)).Method(ref A,out y);
+
+}

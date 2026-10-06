@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 
 namespace Melville.StreamInterfaces.ParsingBuffers;
 
+/// <summary>
+/// Configure await operations
+/// </summary>
 public static class AwaitConfig
 {
     private static bool resumeOnCalledThread = false;

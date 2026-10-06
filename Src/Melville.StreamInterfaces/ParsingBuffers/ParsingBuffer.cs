@@ -3,13 +3,19 @@ using System;
 using System.Buffers;
 using System.Buffers.Binary;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Melville.StreamInterfaces.ParsingBuffers;
 
-public partial class ParsingBuffer(IAsyncReader source, int initialBufferSize = 8 * 1024) : IDisposable
+/// <summary>
+/// Implements a buffer that can be incrementally filled from a stream and used for parsing.
+/// </summary>
+/// <param name="source">The IAsyncReader to get data from.</param>
+/// <param name="initialBufferSize">The desired initial size of the buffer, opr 0 for a default value</param>
+public partial class ParsingBuffer(IAsyncReader source, int initialBufferSize = 0) : IDisposable
 {
     #region buffer creation and disposal
     private byte[] buffer = ArrayPool<byte>.Shared.Rent(DesiredBufferLength(source, initialBufferSize));
@@ -25,6 +31,7 @@ public partial class ParsingBuffer(IAsyncReader source, int initialBufferSize = 
             var measuredBytes => (int)measuredBytes
         };
 
+    ///<inheritdoc/>
     public void Dispose()
     {
         ArrayPool<byte>.Shared.Return(buffer);
@@ -35,11 +42,28 @@ public partial class ParsingBuffer(IAsyncReader source, int initialBufferSize = 
     #region Used portions of buffer
     private int firstByte;
     private int nextByteSpace;
+    /// <summary>
+    /// A span of the current parsable data.
+    /// </summary>    /// <returns></returns>
     public Span<byte> Peek() => buffer.AsSpan(firstByte, CurrentLength);
+    /// <summary>
+    /// A memory of the current parsable data
+    /// </summary>
+    /// <returns></returns>
     public Memory<byte> PeekMemory() => buffer.AsMemory(firstByte, CurrentLength);
+
+    ///<inheritdoc/>
     public int CurrentLength => nextByteSpace - firstByte;
+
+    ///<inheritdoc/>
     public long RelativePosition { get; set; }
 
+    /// <summary>
+    /// Consume the given number of bytes in the parsing buffer -- allowing them to be overwritten
+    /// </summary>
+    /// <param name="bytes">The number of bytes to consume.</param>
+    /// <exception cref="InvalidOperationException">If bytes is larger than the remaining length of the
+    /// parsing buffer.</exception>
     public void Advance(int bytes)
     {
         firstByte += bytes;
@@ -50,19 +74,42 @@ public partial class ParsingBuffer(IAsyncReader source, int initialBufferSize = 
     #endregion
 
     #region Read additional bytes into the buffer
+    /// <summary>
+    /// Attempt to ensure that the parsing buffer is at least a given size.
+    /// </summary>
+    /// <param name="desiredSize">The minimum number of bytes desired in the buffer.</param>
+    /// <param name="ct">The cancellation token</param>
+    /// <returns>The actual number of new bytes read.</returns>
     public ValueTask<int> TryEnsureBytesAsync(int desiredSize, CancellationToken ct = default) =>
         CurrentLength >= desiredSize ?
             ValueTask.FromResult(0) :
             ReadBytesAsync(desiredSize, ct);
 
+    /// <summary>
+    /// Ensure that the parsing buffer is at least a given size, or throw an exception if unable.
+    /// </summary>
+    /// <param name="desiredSize">The minimum number of bytes desired in the buffer.</param>
+    /// <param name="ct">The cancellation token</param>
+    /// <exception cref="EndOfStreamException"></exception>
     public async ValueTask<int> EnsureBytesAsync(int desiredSize, CancellationToken ct = default)
     {
         var ret = await TryEnsureBytesAsync(desiredSize).CA();
         if (CurrentLength < desiredSize && !ct.IsCancellationRequested)
-            throw new InvalidOperationException("Not enough bytes for EnsureBytesAsync");
+            throw new EndOfStreamException("Not enough bytes for EnsureBytesAsync");
         return ret;
     }
 
+    /// <summary>
+    /// Unconditionally read additional bytes from the source.
+    /// 
+    /// Prior to reading this function may choose to roll data to the front of the buffer
+    /// or expand the buffer if needed to read additional data.
+    /// </summary>
+    /// <param name="desiredSize">The minimum desired size of the buffer after the read.  This
+    /// request may not be fulfilled if the stream runs out of data, but will repeatedly
+    /// read the source stream to try and get the requested number of bytes.</param>
+    /// <param name="ct">The cancellation token</param>
+    /// <returns>Number of new bytes read into the buffer.</returns>
     public async ValueTask<int> ReadBytesAsync(int desiredSize = 0, CancellationToken ct = default)
     {
         TryCycleBuffer(desiredSize);
@@ -70,8 +117,15 @@ public partial class ParsingBuffer(IAsyncReader source, int initialBufferSize = 
         var ret =
             await source.ReadAtLeastAsync(buffer.AsMemory(nextByteSpace), bytesNeeded, ct, false).CA();
         nextByteSpace += ret;
+        DoneReadingSource = ret is 0;
         return ret;
     }
+
+    /// <summary>
+    /// The source IStream has no more data to read into the buffer.  This is if the last read returned 0 bytes.
+    /// </summary>
+    public bool DoneReadingSource { get; private set; }
+
     void TryCycleBuffer(int desiredSize)
     {
         int bufferLength = buffer.Length;
@@ -119,13 +173,27 @@ public partial class ParsingBuffer(IAsyncReader source, int initialBufferSize = 
     #endregion
 
     #region FillExternalBuffer
+    /// <summary>
+    /// Read a block of data into an external buffer.  If the buffer is larger than data in the reader's buffer
+    /// this method will avoid cycling data through the reader's buffer.  If there is not enough data, throw
+    /// an exception.
+    /// </summary>
+    /// <param name="externalBuffer">The buffer to write data into.</param>
+    /// <param name="ct">The cancellation token</param>
+    /// <exception cref="EndOfStreamException">If there is not enough data in the stream to fill the buffer.</exception>
     public async ValueTask FillExternalBufferAsync(Memory<byte> externalBuffer, CancellationToken ct = default)
     {
         var read = await TryFillExternalBufferAsync(externalBuffer, ct);
         if (read < externalBuffer.Length && !ct.IsCancellationRequested)
-            throw new InvalidOperationException("Not enough bytes tof fill buffer");
+            throw new EndOfStreamException("Not enough bytes tof fill buffer");
     }
 
+    /// <summary>
+    /// Try to fill an external buffer with bytes from the stream.
+    /// </summary>
+    /// <param name="externalBuffer">The external buffer to fill</param>
+    /// <param name="ct">A cancellation token</param>
+    /// <returns>The number of bytes filled in the buffer.</returns>
     public async ValueTask<int> TryFillExternalBufferAsync(Memory<byte> externalBuffer, CancellationToken  ct = default)
     {
         var inMemLength = Math.Min(externalBuffer.Length, CurrentLength);
@@ -140,6 +208,13 @@ public partial class ParsingBuffer(IAsyncReader source, int initialBufferSize = 
     #endregion
 
     #region NumberParsers
+    /// <summary>
+    /// Remove a group of bytes from the parsing buffer and then advance past them.  
+    /// The resulting Memory&lt;byte&gt; is only guaranteed to be valid before the
+    /// next ReadBytesAsync operation, which may reorganize the buffer.
+    /// </summary>
+    /// <param name="bytes"></param>
+    /// <returns></returns>
     public async ValueTask<Memory<byte>> TakeBytes(int bytes)
     {
         await EnsureBytesAsync(bytes);
@@ -148,18 +223,33 @@ public partial class ParsingBuffer(IAsyncReader source, int initialBufferSize = 
         return ret;
     }
 
+    /// <summary>
+    /// Read an unsigned byte from the buffer and advance past it.
+    /// </summary>
     [MacroItem(16, 2)]
     [MacroItem(32, 4)]
     [MacroItem(64, 8)]
     [MacroItem(128, 16)]
     [MacroCode("""
+          /// <summary>
+          /// Read a big endian UInt~0~ from the buffer and advance past it.
+          /// </summary>
           public async ValueTask<UInt~0~> GetUInt~0~BigEndianAsync() =>
                BinaryPrimitives.ReadUInt~0~BigEndian((await TakeBytes(~1~)).Span);
-           public async ValueTask<UInt~0~> GetUInt~0~LittleEndianAsync() =>
+          /// <summary>
+          /// Read a little endian UInt~0~ from the buffer and advance past it.
+          /// </summary>
+                   public async ValueTask<UInt~0~> GetUInt~0~LittleEndianAsync() =>
                BinaryPrimitives.ReadUInt~0~LittleEndian((await TakeBytes(~1~)).Span);
-           public async ValueTask<Int~0~> GetInt~0~BigEndianAsync() =>
+          /// <summary>
+          /// Read a big endian Int~0~ from the buffer and advance past it.
+          /// </summary>
+                   public async ValueTask<Int~0~> GetInt~0~BigEndianAsync() =>
                BinaryPrimitives.ReadInt~0~BigEndian((await TakeBytes(~1~)).Span);
-           public async ValueTask<Int~0~> GetInt~0~LittleEndianAsync() =>
+          /// <summary>
+          /// Read a little endian Int~0~ from the buffer and advance past it.
+          /// </summary>
+                   public async ValueTask<Int~0~> GetInt~0~LittleEndianAsync() =>
                BinaryPrimitives.ReadInt~0~LittleEndian((await TakeBytes(~1~)).Span);
         """)]
     public async ValueTask<byte> GetUInt8(){
@@ -168,6 +258,10 @@ public partial class ParsingBuffer(IAsyncReader source, int initialBufferSize = 
         Advance(1);
         return ret;
     }
+
+    /// <summary>
+    /// Read a signed byte from the buffer and advance past it.
+    /// </summary>
     public async ValueTask<sbyte> GetInt8()
     {
         await EnsureBytesAsync(1);

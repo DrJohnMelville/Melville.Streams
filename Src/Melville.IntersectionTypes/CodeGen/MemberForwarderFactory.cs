@@ -52,7 +52,7 @@ internal readonly struct MemberForwarderFactory(string target)
         }
         sb.AppendLine("    }");
 
-        return generatedArm ? new(refPrefix + ps.Type.GlobalName, sb.ToString(), ps.Name, parameterTypes) : null;
+        return generatedArm ? new(refPrefix + ps.Type.GlobalName, sb.ToString(), ps.Name, parameterTypes, ps) : null;
 
     }
 
@@ -73,7 +73,7 @@ internal readonly struct MemberForwarderFactory(string target)
 
         return new MemberForwarder(
             RefParameterPrefix(ms.RefKind) + ms.ReturnType.GlobalName, code.ToString(), ms.Name, 
-            parameterTypes);
+            parameterTypes, ms);
     }
 
 
@@ -151,6 +151,6 @@ internal readonly struct MemberForwarderFactory(string target)
         }
         code.AppendLine("    }");
 
-        return new($"event {es.Type}", code.ToString(), es.Name, null);
+        return new($"event {es.Type}", code.ToString(), es.Name, null, es);
     }
 }
