@@ -30,4 +30,17 @@ public interface ISeekableStream : IStream
         Seek(innerPos);
         return innerPos;
     }
+
+    /// <summary>
+    /// Boolean flag indicating ability to seek relative to the current stream position
+    /// </summary>
+    /// <returns>True if can seek using the SeekOrigin.Current flag, false otherwise.</returns>
+    bool CanSeekRelativeToPosition => this is IStreamPosition;
+
+
+    /// <summary>
+    /// Boolean flag indicating ability to seek relative to the end of the stream
+    /// </summary>
+    /// <returns>True if can seek using the SeekOrigin.End flag, false otherwise.</returns>
+    bool CanSeekRelativeToEnd => this is IStreamLength;
 }

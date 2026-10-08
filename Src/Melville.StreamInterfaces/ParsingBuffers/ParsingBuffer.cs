@@ -1,15 +1,16 @@
 ﻿using Melville.INPC;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Buffers;
 using System.Buffers.Binary;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Melville.StreamInterfaces.ParsingBuffers;
-
 /// <summary>
 /// Implements a buffer that can be incrementally filled from a stream and used for parsing.
 /// </summary>
@@ -67,10 +68,62 @@ public partial class ParsingBuffer(IAsyncReader source, int initialBufferSize = 
     public void Advance(int bytes)
     {
         firstByte += bytes;
-        if (firstByte > nextByteSpace)
-            throw new InvalidOperationException("Claimed more bytes than the buffer actually contains");
+        if ((uint)firstByte > nextByteSpace)
+            throw new InvalidOperationException("Claimed negative or more bytes than the buffer actually contains");
         RelativePosition += bytes;
     }
+
+    /// <summary>
+    /// Skip forward to the given relative position.
+    /// </summary>
+    /// <param name="newRelativePosition">The desired next relative position.</param>
+    /// <param name="ct">The cancellation token for the operation</param>
+    /// <exception cref="InvalidOperationException">The desired relative position is less than the current position
+    /// </exception>
+    public ValueTask AdvanceToRelativePositionAsync(long newRelativePosition, CancellationToken ct = default) =>
+        AdvanceAsync((int)(newRelativePosition - RelativePosition), ct);
+
+    /// <summary>
+    /// Advance the reader forward by a given number of bytes, reading additional data from the source stream
+    /// if necessary to do so.  If the underlying stream can seek relative to the current position, the
+    /// method may use a Seek call to quickly advance the underlying stream.  If the underlying stream cannot seek
+    /// will repeatedly read the stream to advance the right number of bytes.
+    /// </summary>
+    /// <param name="delta"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    public ValueTask AdvanceAsync(int delta, CancellationToken ct = default)
+    {
+        if (TryLocalAdvance(ref delta)) return ValueTask.CompletedTask;
+        if (source is ISeekableStream { CanSeekRelativeToPosition: true} seek)
+        {
+            seek.Seek(delta, SeekOrigin.Current);
+            RelativePosition += delta;
+            return ValueTask.CompletedTask;
+        }
+        else
+            return ReadingAdvance(delta, ct);
+
+    }
+
+    bool TryLocalAdvance(ref int delta)
+    {
+        if (delta is 0) return true;
+        var takeable = Math.Min(delta, CurrentLength);
+        Advance(takeable);
+        delta -= takeable;
+        return delta <= 0;
+    }
+
+    async ValueTask ReadingAdvance(int delta, CancellationToken ct = default)
+    {
+        do
+        {
+            if ((await ReadBytesAsync(1, ct).CA()) is 0)
+                throw new EndOfStreamException("Ran out of stream when advancing forward.");
+        } while (!TryLocalAdvance(ref delta));
+    }
+
     #endregion
 
     #region Read additional bytes into the buffer
@@ -91,9 +144,14 @@ public partial class ParsingBuffer(IAsyncReader source, int initialBufferSize = 
     /// <param name="desiredSize">The minimum number of bytes desired in the buffer.</param>
     /// <param name="ct">The cancellation token</param>
     /// <exception cref="EndOfStreamException"></exception>
-    public async ValueTask<int> EnsureBytesAsync(int desiredSize, CancellationToken ct = default)
+    public ValueTask<int> EnsureBytesAsync(int desiredSize, CancellationToken ct = default) =>
+        CurrentLength >= desiredSize ? //  on the hot path where the bytes are in memory avoid a state machine.
+            ValueTask.FromResult(0) :
+            InnerEnsureBytesAsync(desiredSize, ct);
+
+    private async ValueTask<int> InnerEnsureBytesAsync(int desiredSize, CancellationToken ct = default)
     {
-        var ret = await TryEnsureBytesAsync(desiredSize).CA();
+        var ret = await ReadBytesAsync(desiredSize).CA();
         if (CurrentLength < desiredSize && !ct.IsCancellationRequested)
             throw new EndOfStreamException("Not enough bytes for EnsureBytesAsync");
         return ret;
@@ -215,7 +273,7 @@ public partial class ParsingBuffer(IAsyncReader source, int initialBufferSize = 
     /// </summary>
     /// <param name="bytes"></param>
     /// <returns></returns>
-    public async ValueTask<Memory<byte>> TakeBytes(int bytes)
+    public async ValueTask<Memory<byte>> TakeBytesAsync(int bytes)
     {
         await EnsureBytesAsync(bytes);
         var ret = PeekMemory()[..bytes];
@@ -235,22 +293,22 @@ public partial class ParsingBuffer(IAsyncReader source, int initialBufferSize = 
           /// Read a big endian UInt~0~ from the buffer and advance past it.
           /// </summary>
           public async ValueTask<UInt~0~> GetUInt~0~BigEndianAsync() =>
-               BinaryPrimitives.ReadUInt~0~BigEndian((await TakeBytes(~1~)).Span);
+               BinaryPrimitives.ReadUInt~0~BigEndian((await TakeBytesAsync(~1~)).Span);
           /// <summary>
           /// Read a little endian UInt~0~ from the buffer and advance past it.
           /// </summary>
                    public async ValueTask<UInt~0~> GetUInt~0~LittleEndianAsync() =>
-               BinaryPrimitives.ReadUInt~0~LittleEndian((await TakeBytes(~1~)).Span);
+               BinaryPrimitives.ReadUInt~0~LittleEndian((await TakeBytesAsync(~1~)).Span);
           /// <summary>
           /// Read a big endian Int~0~ from the buffer and advance past it.
           /// </summary>
                    public async ValueTask<Int~0~> GetInt~0~BigEndianAsync() =>
-               BinaryPrimitives.ReadInt~0~BigEndian((await TakeBytes(~1~)).Span);
+               BinaryPrimitives.ReadInt~0~BigEndian((await TakeBytesAsync(~1~)).Span);
           /// <summary>
           /// Read a little endian Int~0~ from the buffer and advance past it.
           /// </summary>
                    public async ValueTask<Int~0~> GetInt~0~LittleEndianAsync() =>
-               BinaryPrimitives.ReadInt~0~LittleEndian((await TakeBytes(~1~)).Span);
+               BinaryPrimitives.ReadInt~0~LittleEndian((await TakeBytesAsync(~1~)).Span);
         """)]
     public async ValueTask<byte> GetUInt8(){
         await EnsureBytesAsync(1);

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-namespace Melville.StreamInterfaces.ParsingBuffers;
+namespace Melville.StreamInterfaces;
 
 /// <summary>
 /// Configure await operations
