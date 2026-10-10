@@ -1,4 +1,5 @@
 ﻿using Melville.INPC;
+using Melville.StreamInterfaces.Adapters;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Buffers;
@@ -47,11 +48,26 @@ public partial class ParsingBuffer(IAsyncReader source, int initialBufferSize = 
     /// A span of the current parsable data.
     /// </summary>    /// <returns></returns>
     public Span<byte> Peek() => buffer.AsSpan(firstByte, CurrentLength);
+
+    /// <summary>
+    /// Peek at the unread buffer up to a given number of bytes
+    /// </summary>
+    /// <param name="bytes">Maximum number of bytes to return</param>
+    public Span<byte> Peek(int bytes) => Peek()[..Math.Min(bytes, CurrentLength)];
+
+
     /// <summary>
     /// A memory of the current parsable data
     /// </summary>
     /// <returns></returns>
     public Memory<byte> PeekMemory() => buffer.AsMemory(firstByte, CurrentLength);
+
+    /// <summary>
+    /// Peek at the unread buffer up to a given number of bytes
+    /// </summary>
+    /// <param name="bytes">Maximum number of bytes to return</param>
+    public Memory<byte> PeekMemory(int bytes) => PeekMemory()[..Math.Min(bytes, CurrentLength)];
+
 
     ///<inheritdoc/>
     public int CurrentLength => nextByteSpace - firstByte;
@@ -172,15 +188,35 @@ public partial class ParsingBuffer(IAsyncReader source, int initialBufferSize = 
     {
         TryCycleBuffer(desiredSize);
         var bytesNeeded = Math.Max(1, desiredSize - CurrentLength);
-        var ret =
-            await source.ReadAtLeastAsync(buffer.AsMemory(nextByteSpace), bytesNeeded, ct, false).CA();
+        return ProcessReadResult(
+            await source.ReadAtLeastAsync(buffer.AsMemory(nextByteSpace), bytesNeeded, ct, false).CA());
+    }
+
+    private int ProcessReadResult(int ret)
+    {
         nextByteSpace += ret;
         DoneReadingSource = ret is 0;
         return ret;
     }
 
     /// <summary>
-    /// The source IStream has no more data to read into the buffer.  This is if the last read returned 0 bytes.
+    /// Synchronously try to read more data into the stream.  Uses ReadSyncFromAsyncMethods to readd the
+    /// underlying stream.  As long as the underlying stream actually implements ISyncReader this is safe.
+    /// Otherwise you get the risk of synchronously waiting on the threadpool.
+    /// </summary>
+    /// <returns>The number of bytes read into the buffer.</returns>
+    public int DangerousReadBytesSync()
+    {
+        TryCycleBuffer(1);
+        return ProcessReadResult(SyncWrapper.Read(buffer, nextByteSpace, buffer.Length - nextByteSpace));
+        // Use the old array style read call because if we end up inside a SyncFromAsyncReader this call does
+        // not have to allocate an external buffer to marshall buffer into the async call.
+    }
+    private ISyncReader SyncWrapper => field ??= source.AsISyncReader();
+
+    /// <summary>
+    /// The source IStream has no more data to read into the buffer.  This is if the last read returned 
+    /// 0 bytes.
     /// </summary>
     public bool DoneReadingSource { get; private set; }
 

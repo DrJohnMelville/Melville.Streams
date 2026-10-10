@@ -13,9 +13,15 @@ public ref partial struct SpanParsingBuffer(ReadOnlySpan<byte> span)
     private ReadOnlySpan<byte> span = span;
 
     /// <summary>
-    /// Peed at the unread buffer
+    /// Peek at the unread buffer
     /// </summary>
     public ReadOnlySpan<byte> Peek() => span;
+
+    /// <summary>
+    /// Peek at the unread buffer up to a given number of bytes
+    /// </summary>
+    /// <param name="bytes">Maximum number of bytes to return</param>
+    public ReadOnlySpan<byte> Peek(int bytes) => span[..Math.Min(bytes, span.Length)];
 
     /// <summary>
     /// The number of bytes remaining in the buffer

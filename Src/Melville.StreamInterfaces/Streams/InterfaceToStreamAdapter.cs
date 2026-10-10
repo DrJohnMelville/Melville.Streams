@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Melville.StreamInterfaces.Adapters;
+using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
@@ -32,24 +33,22 @@ internal class InterfaceToStreamAdapter(IStream inner): Stream
     protected override void Dispose(bool disposing) => (inner as IDisposable)?.Dispose();
     public override ValueTask DisposeAsync() =>
         (inner as IAsyncDisposable)?.DisposeAsync() ?? ValueTask.CompletedTask;
-    
-    public override int Read(byte[] buffer, int offset, int count) => Read(buffer.AsSpan(offset, count));
-    public override int Read(Span<byte> buffer)
-    {
-        if (inner is ISyncReader sr) return sr.Read(buffer);
-        if (inner is IAsyncReader ar)
-        {
-            var len = buffer.Length;
-            var buf = ArrayPool<byte>.Shared.Rent(len);
-            var ret = Task.Run<int>(() => ar.ReadAsync(buf[..len], default).AsTask()).GetAwaiter().GetResult();
-            buf[..ret].CopyTo(buffer);
-            ArrayPool<byte>.Shared.Return(buf);
-            return ret;
-        }
 
-        throw new NotSupportedException("This stream does not support reading");
-    }
-    public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) =>
+    public override int Read(byte[] buffer, int offset, int count) => inner switch
+    {
+        ISyncReader sr => sr.Read(buffer, offset, count),
+        IAsyncReader ar => ReadSyncFromAsyncMethods.Read(ar, buffer, offset, count),
+        _ => throw new NotSupportedException("This stream does not support reading")
+    };
+
+    public override int Read(Span<byte> buffer) => inner switch
+    {
+        ISyncReader sr => sr.Read(buffer),
+        IAsyncReader ar => ReadSyncFromAsyncMethods.Read(ar, buffer),
+        _ => throw new NotSupportedException("This stream does not support reading")
+    };
+
+public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) =>
         ReadAsync(new Memory<byte>(buffer).Slice(offset, count), cancellationToken).AsTask();
     public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
     {
@@ -64,7 +63,20 @@ internal class InterfaceToStreamAdapter(IStream inner): Stream
     {
         throw new NotImplementedException();
     }
-    public override void Write(byte[] buffer, int offset, int count) => Write(buffer.AsSpan(offset, count));
+    public override void Write(byte[] buffer, int offset, int count)
+    {
+        switch (inner)
+        {
+            case ISyncWriter sw:
+                sw.Write(buffer, offset, count);
+                break;
+            case IAsyncWriter aw:
+                WriteSyncFromAsyncMethods.Write(aw, buffer, offset, count);
+                break;
+            default:
+                throw new NotSupportedException("This stream does not support writing");
+        }
+    }
     public override void Write(ReadOnlySpan<byte> buffer)
     {
         switch (inner)
@@ -73,11 +85,7 @@ internal class InterfaceToStreamAdapter(IStream inner): Stream
                 sw.Write(buffer);
                 break;
             case IAsyncWriter aw:
-                var buf = ArrayPool<byte>.Shared.Rent(buffer.Length);
-                var len = buffer.Length;
-                buffer.CopyTo(buf);
-                Task.Run(() => aw.WriteAsync(buf.AsMemory(0, len))).GetAwaiter().GetResult();
-                ArrayPool<byte>.Shared.Return(buf);
+                WriteSyncFromAsyncMethods.Write(aw, buffer);
                 break;
             default:
                 throw new NotSupportedException("This stream does not support writing");
