@@ -1,5 +1,6 @@
 ﻿using Melville.INPC;
 using System;
+using System.Buffers;
 using System.Buffers.Binary;
 
 namespace Melville.StreamInterfaces.ParsingBuffers;
@@ -12,6 +13,7 @@ public ref partial struct SpanParsingBuffer(ReadOnlySpan<byte> span)
 {
     private ReadOnlySpan<byte> span = span;
 
+    #region Buffer access and status
     /// <summary>
     /// Peek at the unread buffer
     /// </summary>
@@ -32,6 +34,10 @@ public ref partial struct SpanParsingBuffer(ReadOnlySpan<byte> span)
     /// Counter that is advanced when the buffer is consumed.
     /// </summary>
     public long RelativePosition { get; set; }
+
+    #endregion
+
+    #region Advance Methods
 
     /// <summary>
     /// Consume a number of bytes from the front of the buffer.
@@ -57,8 +63,9 @@ public ref partial struct SpanParsingBuffer(ReadOnlySpan<byte> span)
     /// </exception>
     public void AdvanceToRelativePosition(long newRelativePosition) => 
         Advance((int)(newRelativePosition - RelativePosition));
+    #endregion
 
-
+    #region Integer Parsing Methods
     [MacroItem(16, 2)]
     [MacroItem(32, 4)]
     [MacroItem(64, 8)]
@@ -121,4 +128,106 @@ public ref partial struct SpanParsingBuffer(ReadOnlySpan<byte> span)
         Advance(1);
         return ret;
     }
+    #endregion
+
+    #region Try get and peek methods
+    /// <summary>
+    /// Try to get a byte out of the buffer, and advance if successful.
+    /// </summary>
+    /// <param name="value">The byte if successful, zero otherwise.</param>
+    /// <returns>True if a byte is present, false otherwise.</returns>
+    public bool TryGetUInt8(out byte value)
+    {
+        if (TryPeekUInt8(out value))
+        {
+            Advance(1);
+            return true;
+        }
+        return false;
+    }
+    /// <summary>
+    /// Try to get a byte out of the buffer, and advance if successful.
+    /// </summary>
+    /// <param name="value">The byte if successful, zero otherwise.</param>
+    /// <returns>True if a byte is present, false otherwise.</returns>
+    public bool TryPeekUInt8(out byte value)
+    {
+        if (RemainingLength < 1)
+        {
+            value = 0;
+            return false;
+        }
+        value = Peek()[0];
+        return true;
+    }
+
+    #endregion
+
+    #region SearchMethods 
+    /// <summary>
+    /// Advance to and consume the next index that complies with the accept parameter 
+    /// </summary>
+    /// <param name="accept">A search values of items to accept.</param>
+    /// <param name="value">the found Character</param>
+    /// <returns>true if compliant character is found, false otherwise</returns>
+    public bool TryGetNext(SearchValues<byte> accept, out byte value)
+    {
+        if (TryAdvanceTo(accept))
+        {
+            value = GetUInt8();
+            return true;
+        }
+        else
+        {
+            value = 0;
+            return false;
+        }
+    }
+    /// <summary>
+    /// Advance to and consume the next index that does not match the exclude parameter 
+    /// </summary>
+    /// <param name="exclude">A search values of items to exclude.</param>
+    /// <param name="value">the found Character</param>
+    /// <returns>true if compliant character is found, false otherwise</returns>
+    public bool TryGetNextExcept(SearchValues<byte> exclude, out byte value)
+    {
+
+        if (TryAdvanceToExcept(exclude))
+        {
+            value = GetUInt8();
+            return true;
+        }
+        else
+        {
+            value = 0;
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Attempt to the next item matching the accept parameter.  Does not move if no item found
+    /// </summary>
+    /// <param name="accept">SearchVales describing items to accept</param>
+    /// <returns>True if the advance was successful false if not.</returns>
+    public bool TryAdvanceTo(SearchValues<byte> accept)
+    {
+        var index = Peek().IndexOfAny(accept);
+        if (index < 0) return false;
+        Advance(index);
+        return true;
+    }
+    /// <summary>
+    /// Attempt to the next item matching the accept parameter.  Does not move if no item found
+    /// </summary>
+    /// <param name="accept">SearchVales describing items to accept</param>
+    /// <returns>True if the advance was successful false if not.</returns>
+    public bool TryAdvanceToExcept(SearchValues<byte> exclude)
+    {
+        var index = Peek().IndexOfAnyExcept(exclude);
+        if (index < 0) return false;
+        Advance(index);
+        return true;
+    }
+
+    #endregion
 }

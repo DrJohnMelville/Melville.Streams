@@ -1,5 +1,6 @@
 ﻿using Melville.StreamInterfaces.ParsingBuffers;
 using System;
+using System.Buffers;
 
 namespace IntegrationTesting.Streams;
 
@@ -43,6 +44,55 @@ public class SpanParsingBufferTest
         }
 
         false.Should().BeTrue("The exception should have thrown");
+    }
 
+    [Test]
+    public void TryPeekAndGetUUnt8()
+    {
+        var sut = new SpanParsingBuffer([5]);
+        sut.TryPeekUInt8(out var num).Should().BeTrue();
+        num.Should().Be(5);
+        num = 10;
+        sut.TryGetUInt8(out num).Should().BeTrue();
+        num.Should().Be(5);
+        num = 10;
+        sut.TryGetUInt8(out num).Should().BeFalse();
+        sut.TryPeekUInt8(out num).Should().BeFalse();
+    }
+
+    private static readonly SearchValues<byte> SpaceFinder = SearchValues.Create((byte)32);
+    private static readonly SearchValues<byte> OneFive = SearchValues.Create([1,2,3,4,5]);
+
+    [Test]
+    public void TryGetNextTest()
+    {
+        var sut = new SpanParsingBuffer([1, 2, 3, 4, 5, 32, 6, 7, 8, 9]);
+        sut.TryGetNext(SpaceFinder, out var value).Should().BeTrue();
+        value.Should().Be(32);
+        sut.RelativePosition.Should().Be(6);
+    }
+    [Test]
+    public void TryGetNextTest2()
+    {
+        var sut = new SpanParsingBuffer([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        sut.TryGetNext(SpaceFinder, out var value).Should().BeFalse();
+        value.Should().Be(0);
+        sut.RelativePosition.Should().Be(0);
+    }
+    [Test]
+    public void TryGetNextTes3t()
+    {
+        var sut = new SpanParsingBuffer([1, 2, 3, 4, 5, 32, 6, 7, 8, 9]);
+        sut.TryGetNextExcept(OneFive, out var value).Should().BeTrue();
+        value.Should().Be(32);
+        sut.RelativePosition.Should().Be(6);
+    }
+    [Test]
+    public void TryGetNextTest4()
+    {
+        var sut = new SpanParsingBuffer([1, 2, 3, 4, 5, 2, 3, 4, 5]);
+        sut.TryGetNextExcept(OneFive, out var value).Should().BeFalse();
+        value.Should().Be(0);
+        sut.RelativePosition.Should().Be(0);
     }
 }

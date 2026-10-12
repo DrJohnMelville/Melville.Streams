@@ -180,8 +180,8 @@ public class ParsingBufferTest : IDisposable
         sut.RelativePosition = 100;
         await sut.EnsureBytesAsync(16);
         await sut.AdvanceToRelativePositionAsync(105);
-        sut.RelativePosition.Should().Be(115);
-        sut.Peek().ToArray().Should().BeEquivalentTo([15]);
+        sut.RelativePosition.Should().Be(105);
+        sut.Peek().ToArray().Should().BeEquivalentTo([5, 6,7,8,9,10,11,12,13,14,15]);
     }
     [Test]
     public async Task AdvanceToRelativePositionReadBuffer()
@@ -196,4 +196,11 @@ public class ParsingBufferTest : IDisposable
     [Test] public async Task GetUint16LittleEndian() => (await sut.GetUInt16LittleEndianAsync()).Should().Be(0x0100);
     [Test] public async Task GetInt16BigEndian() => (await sut.GetInt16BigEndianAsync()).Should().Be(0x0001);
     [Test] public async Task GetInt16LittleEndian() => (await sut.GetInt16LittleEndianAsync()).Should().Be(0x0100);
+
+    [Test]
+    public void AppendBytesTeest()
+    {
+        sut.AppendBytes(1, 2, 3, 4, 5);
+        sut.Peek().ToArray().Should().BeEquivalentTo([1, 2, 3, 4, 5]);
+    }
 }

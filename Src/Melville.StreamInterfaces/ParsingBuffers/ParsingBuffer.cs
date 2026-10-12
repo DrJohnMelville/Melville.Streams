@@ -215,6 +215,17 @@ public partial class ParsingBuffer(IAsyncReader source, int initialBufferSize = 
     private ISyncReader SyncWrapper => field ??= source.AsISyncReader();
 
     /// <summary>
+    /// Push literal bytes onto the end of the buffer
+    /// </summary>
+    /// <param name="bytes">the data to add</param>
+    public void AppendBytes(params ReadOnlySpan<byte> bytes)
+    {
+        TryCycleBuffer(this.CurrentLength + bytes.Length);
+        bytes.CopyTo(buffer.AsSpan(nextByteSpace));
+        ProcessReadResult(bytes.Length);
+    }
+
+    /// <summary>
     /// The source IStream has no more data to read into the buffer.  This is if the last read returned 
     /// 0 bytes.
     /// </summary>
