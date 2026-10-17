@@ -105,12 +105,23 @@ internal static class CopyHelpers
         public int DesiredCopyBufferSize() =>
             (int)long.Clamp(self.BytesLeft(), 16, DefaultCopyBufferSize);
 
-        public long BytesLeft() => self switch
+        public long BytesLeft()
         {
-            IStreamLength sl and IStreamPosition pos => sl.Length - pos.Position,
-            IStreamLength sl => sl.Length,
-            _ => long.MaxValue
-        };
+            try
+            {
+                return self switch
+                {
+                    IStreamLength sl and IStreamPosition pos => sl.Length - pos.Position,
+                    IStreamLength sl => sl.Length,
+                    _ => long.MaxValue
+                };
+            }
+            catch (NotSupportedException)
+            {
+                // some legacy streams throw when you ask their length
+                return long.MaxValue;
+            }
+        }
     }
 
     extension(ArgumentException exec)
