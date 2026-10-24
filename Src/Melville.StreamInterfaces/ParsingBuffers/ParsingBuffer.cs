@@ -84,17 +84,6 @@ public partial class ParsingBuffer: IDisposable
     #region Used portions of buffer
     private int firstByte;
     private int nextByteSpace;
-    /// <summary>
-    /// A span of the current parsable data.
-    /// </summary>    /// <returns></returns>
-    public Span<byte> Peek() => buffer.AsSpan(firstByte, CurrentLength);
-
-    /// <summary>
-    /// Peek at the unread buffer up to a given number of bytes
-    /// </summary>
-    /// <param name="bytes">Maximum number of bytes to return</param>
-    public Span<byte> Peek(int bytes) => Peek()[..Math.Min(bytes, CurrentLength)];
-
 
     /// <summary>
     /// A memory of the current parsable data
@@ -114,26 +103,7 @@ public partial class ParsingBuffer: IDisposable
     /// <returns>The length and ascii interpretation of the current buffer.</returns>
     public override string ToString() => $"({CurrentLength}){Encoding.ASCII.GetString(Peek().TakeMax(50))}{TooLongString()}";
     private string TooLongString() => Peek().Length > 50 ? "..." : "";
-    ///<inheritdoc/>
-    public int CurrentLength => nextByteSpace - firstByte;
-
-    ///<inheritdoc/>
-    public long RelativePosition { get; set; }
-
-    /// <summary>
-    /// Consume the given number of bytes in the parsing buffer -- allowing them to be overwritten
-    /// </summary>
-    /// <param name="bytes">The number of bytes to consume.</param>
-    /// <exception cref="InvalidOperationException">If bytes is larger than the remaining length of the
-    /// parsing buffer.</exception>
-    public void Advance(int bytes)
-    {
-        firstByte += bytes;
-        if ((uint)firstByte > nextByteSpace)
-            throw new InvalidOperationException("Claimed negative or more bytes than the buffer actually contains");
-        RelativePosition += bytes;
-    }
-
+   
     /// <summary>
     /// Skip forward to the given relative position.
     /// </summary>
@@ -496,4 +466,24 @@ public partial class ParsingBuffer: IDisposable
     }
 
     #endregion
+
+    #region
+    /// <summary>
+    /// The current in memory bytes.
+    /// </summary>
+    public ReadOnlySpan<byte> Peek() => buffer.AsSpan()[firstByte..nextByteSpace];
+
+    [MacroItem(typeof(SearchValues<byte>))]
+    [MacroCode(SpanParsingMacros.SingleShotCode)]
+    partial void SingleShotHolder();
+
+    [MacroItem(16, 2)]
+    [MacroItem(32, 4)]
+    [MacroItem(64, 8)]
+    [MacroItem(128, 16)]
+    [MacroCode(SpanParsingMacros.NumberMethods)]
+    partial void NumberMethods();
+
+    private void InnerAdvance(int delta) => firstByte += delta;
+    #endregion 
 }
