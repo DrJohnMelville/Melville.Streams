@@ -2,8 +2,11 @@
 using System;
 using System.Buffers;
 using System.Buffers.Binary;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Melville.StreamInterfaces.ParsingBuffers;
+
+
 
 /// <summary>
 /// Tools for sequentially reading from a ReadOnlySpan of bytes.
@@ -66,6 +69,7 @@ public ref partial struct SpanParsingBuffer(ReadOnlySpan<byte> span)
     #endregion
 
     #region Integer Parsing Methods
+
     [MacroItem(16, 2)]
     [MacroItem(32, 4)]
     [MacroItem(64, 8)]
@@ -126,6 +130,17 @@ public ref partial struct SpanParsingBuffer(ReadOnlySpan<byte> span)
     {
         var ret = (sbyte)span[0];
         Advance(1);
+        return ret;
+    }
+
+    public ulong GetUIntBigEndian(int bytes)
+    {
+        ulong ret = 0;
+        for (int i = 0; i < bytes; i++)
+        {
+            ret <<= 8;
+            ret |= this.GetUInt8();
+        }
         return ret;
     }
     #endregion

@@ -1,11 +1,13 @@
 ﻿
 using Melville.StreamInterfaces;
 using Melville.StreamInterfaces.ParsingBuffers;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using static TUnit.Mocks.Times;
 
 namespace IntegrationTesting.Streams;
 
@@ -77,7 +79,7 @@ public class ParsingBufferTest : IDisposable
     {
         source.Length = 0;
         sut.DoneReadingSource.Should().BeFalse();
-        (await sut.TryEnsureBytesAsync(12)).Should().Be(0);
+        (await sut.TryEnsureBytesAsync(12)).Should().BeFalse();
         sut.DoneReadingSource.Should().BeTrue();
         await sut.Awaiting(i => i.EnsureBytesAsync(12)).Should()
             .ThrowAsync<EndOfStreamException>();
@@ -198,9 +200,22 @@ public class ParsingBufferTest : IDisposable
     [Test] public async Task GetInt16LittleEndian() => (await sut.GetInt16LittleEndianAsync()).Should().Be(0x0100);
 
     [Test]
-    public void AppendBytesTeest()
+    public void AppendBytesTest()
     {
         sut.AppendBytes(1, 2, 3, 4, 5);
         sut.Peek().ToArray().Should().BeEquivalentTo([1, 2, 3, 4, 5]);
+    }
+
+
+    [Test]
+    [Arguments(0, 0x00)]
+    [Arguments(1, 0x01)]
+    [Arguments(2, 0x0102)]
+    [Arguments(3, 0x010203)]
+    [Arguments(8, 0x0102030405060708)]
+    public async Task GetUIntBigEndianTestAsync(int bytes, ulong value)
+    {
+        sut.AppendBytes([1, 2, 3, 4, 5, 6, 7, 8, 5]);
+        (await sut.GetUIntBigEndianAsync(bytes)).Should().Be(value);
     }
 }

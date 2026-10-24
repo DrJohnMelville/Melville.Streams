@@ -1,5 +1,7 @@
 ﻿using Melville.INPC;
 using Melville.StreamInterfaces.Adapters;
+using Melville.StreamInterfaces.Mixins;
+using Melville.StreamInterfaces.ParsingBuffers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Buffers;
@@ -8,19 +10,63 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Melville.StreamInterfaces.ParsingBuffers;
+
 /// <summary>
 /// Implements a buffer that can be incrementally filled from a stream and used for parsing.
 /// </summary>
-/// <param name="source">The IAsyncReader to get data from.</param>
-/// <param name="initialBufferSize">The desired initial size of the buffer, opr 0 for a default value</param>
-public partial class ParsingBuffer(IAsyncReader source, int initialBufferSize = 0) : IDisposable
+public partial class ParsingBuffer: IDisposable
 {
+    #region CreateAndDispose
+
+    private readonly IAsyncReader source;
+    private IDisposable? dependencies;
+
+    /// <summary>
+    /// Implements a buffer that can be incrementally filled from a stream and used for parsing.
+    /// </summary>
+    /// <param name="source">The IAsyncReader to get data from.</param>
+    /// <param name="initialBufferSize">The desired initial size of the buffer, opr 0 for a default value</param>
+    public ParsingBuffer(IAsyncReader source, int initialBufferSize = 0)
+    {
+        this.source = source;
+        buffer = ArrayPool<byte>.Shared.Rent(DesiredBufferLength(source, initialBufferSize));
+        RequireDisposal.ReportCreation(this);
+    }
+
+    ///<inheritdoc/>
+    public virtual void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        RequireDisposal.ReportDisposal(this);
+        ArrayPool<byte>.Shared.Return(buffer);
+        dependencies?.Dispose();
+        buffer = [];
+    }
+
+    /// <summary>
+    /// Detect missed dispose in debg builds.
+    /// </summary>
+    ~ParsingBuffer() => RequireDisposal.ReportMissedDispose(this);
+
+    /// <summary>
+    /// Adds a dependency to be disposes when this is disposed.  Will ignore non IDisposables.
+    /// </summary>
+    /// <param name="dependency">The dependency to dispose.</param>
+    /// <returns>The called parsing buffer.  This allows for fluent creation.</returns>
+    public ParsingBuffer WithDisposedDependency(object? dependency)
+    {
+        dependencies = DisposeNode.Create(dependencies, dependency as IDisposable);
+        return this;
+    }
+    #endregion
+
     #region buffer creation and disposal
-    private byte[] buffer = ArrayPool<byte>.Shared.Rent(DesiredBufferLength(source, initialBufferSize));
+    private byte[] buffer;
 
     private const int defaultBufferSize = 8 * 1024;
     private static int DesiredBufferLength(IStream source, int initialBufferSize) =>
@@ -33,12 +79,6 @@ public partial class ParsingBuffer(IAsyncReader source, int initialBufferSize = 
             var measuredBytes => (int)measuredBytes
         };
 
-    ///<inheritdoc/>
-    public void Dispose()
-    {
-        ArrayPool<byte>.Shared.Return(buffer);
-        buffer = [];
-    }
     #endregion
 
     #region Used portions of buffer
@@ -68,7 +108,12 @@ public partial class ParsingBuffer(IAsyncReader source, int initialBufferSize = 
     /// <param name="bytes">Maximum number of bytes to return</param>
     public Memory<byte> PeekMemory(int bytes) => PeekMemory()[..Math.Min(bytes, CurrentLength)];
 
-
+    /// <summary>
+    /// This is a simple debugger view it is terribly memory inefficent for production use
+    /// </summary>
+    /// <returns>The length and ascii interpretation of the current buffer.</returns>
+    public override string ToString() => $"({CurrentLength}){Encoding.ASCII.GetString(Peek().TakeMax(50))}{TooLongString()}";
+    private string TooLongString() => Peek().Length > 50 ? "..." : "";
     ///<inheritdoc/>
     public int CurrentLength => nextByteSpace - firstByte;
 
@@ -148,11 +193,17 @@ public partial class ParsingBuffer(IAsyncReader source, int initialBufferSize = 
     /// </summary>
     /// <param name="desiredSize">The minimum number of bytes desired in the buffer.</param>
     /// <param name="ct">The cancellation token</param>
-    /// <returns>The actual number of new bytes read.</returns>
-    public ValueTask<int> TryEnsureBytesAsync(int desiredSize, CancellationToken ct = default) =>
+    /// <returns>True if the buffer has at least the requested number of bytes, false otherwise.</returns>
+    public ValueTask<bool> TryEnsureBytesAsync(int desiredSize, CancellationToken ct = default) =>
         CurrentLength >= desiredSize ?
-            ValueTask.FromResult(0) :
-            ReadBytesAsync(desiredSize, ct);
+             ValueTask.FromResult(true) : 
+             InnerTryEnsureBytesAsync(desiredSize, ct);
+
+    async ValueTask<bool> InnerTryEnsureBytesAsync(int desiredSize, CancellationToken ct = default)
+    {
+        await ReadBytesAsync(desiredSize, ct).CA();
+        return desiredSize <= CurrentLength;
+    }
 
     /// <summary>
     /// Ensure that the parsing buffer is at least a given size, or throw an exception if unable.
@@ -357,7 +408,7 @@ public partial class ParsingBuffer(IAsyncReader source, int initialBufferSize = 
                    public async ValueTask<Int~0~> GetInt~0~LittleEndianAsync() =>
                BinaryPrimitives.ReadInt~0~LittleEndian((await TakeBytesAsync(~1~)).Span);
         """)]
-    public async ValueTask<byte> GetUInt8(){
+    public async ValueTask<byte> GetUInt8Async(){
         await EnsureBytesAsync(1);
         var ret = Peek()[0];
         Advance(1);
@@ -367,12 +418,82 @@ public partial class ParsingBuffer(IAsyncReader source, int initialBufferSize = 
     /// <summary>
     /// Read a signed byte from the buffer and advance past it.
     /// </summary>
-    public async ValueTask<sbyte> GetInt8()
+    public async ValueTask<sbyte> GetInt8Async()
     {
         await EnsureBytesAsync(1);
         var ret = (sbyte)Peek()[0];
         Advance(1);
         return ret;
     }
+
+    /// <summary>
+    /// Read a specified number of bytes into an unsigned long integer.
+    /// 
+    /// If you know the size at compile time, the size specific methods are more efficient.
+    /// </summary>
+    /// <param name="bytes">Number of bytes read</param>
+    /// <returns>UInt corresponding to the big endian representation of the byte read</returns>
+
+    public async ValueTask<ulong> GetUIntBigEndianAsync(int bytes)
+    {
+        var buffer = await TakeBytesAsync(bytes);
+        ulong ret = 0;
+        foreach(var b in buffer.Span)
+        {
+            ret <<= 8;
+            ret |= b;
+        }
+        return ret;
+    }
+    #endregion
+
+    #region Search for sentinal values
+
+    /// <summary>
+    /// Advance forward to the first of a given set of characters.
+    /// </summary>
+    /// <param name="chars">The characters to search for.</param>
+    public async ValueTask SkipToAsync(SearchValues<byte> chars) =>
+      Advance(await EnsureHasCharAsync(chars).CA());
+
+    /// <summary>
+    /// Read more bytes in the buffer until the buffer contains at least one 
+    /// the characters to search for.
+    /// </summary>
+    /// <param name="chars">The characters to search for.</param>
+    public async ValueTask<int> EnsureHasCharAsync(SearchValues<byte> chars)
+    {
+        int index;
+        do
+        {
+            index = Peek().IndexOfAny(chars);
+        } while (index < 0 && (await ReadBytesAsync().CA()) > 0);
+        return index;
+    }
+
+    /// <summary>
+    /// Advance forward to the first characer not included in a
+    /// given set of characters.
+    /// </summary>
+    /// <param name="chars">The characters to avoid.</param>
+    public async ValueTask SkipOverAsync(SearchValues<byte> chars) =>
+
+        Advance(await EnsureHasNonCharAsync(chars).CA());
+
+    /// <summary>
+    /// Read more bytes in the buffer until the buffer contains at least one 
+    /// the characters not in th list of characters to search for.
+    /// </summary>
+    /// <param name="chars">The characters to search for.</param>
+    public async ValueTask<int> EnsureHasNonCharAsync(SearchValues<byte> chars)
+    {
+        int index;
+        do
+        {
+            index = Peek().IndexOfAnyExcept(chars);
+        } while (index < 0 && (await ReadBytesAsync().CA()) > 0);
+        return index;
+    }
+
     #endregion
 }

@@ -95,4 +95,16 @@ public class SpanParsingBufferTest
         value.Should().Be(0);
         sut.RelativePosition.Should().Be(0);
     }
+
+    [Test]
+    [Arguments(0, 0x00)]
+    [Arguments(1, 0x01)]
+    [Arguments(2, 0x0102)]
+    [Arguments(3, 0x010203)]
+    [Arguments(8, 0x0102030405060708)]
+    public void GetUIntBigEndianTest(int bytes, ulong value)
+    {
+        var sut = new SpanParsingBuffer([1, 2, 3, 4, 5, 6, 7, 8, 5]);
+        sut.GetUIntBigEndian(bytes).Should().Be(value);
+    }
 }

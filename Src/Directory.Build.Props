@@ -11,7 +11,8 @@
         <RepositoryUrl>https://github.com/DrJohnMelville/Melville.Streams</RepositoryUrl>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<NoWarn>NU1701;CRR0029</NoWarn>
-    </PropertyGroup>
+		<Features>$(Features);runtime-async=on</Features>
+	</PropertyGroup>
 
 	<Target Name="CopyPackage" AfterTargets="Pack">
 		<Copy SourceFiles="$(OutputPath)..\$(PackageId).$(PackageVersion).nupkg"

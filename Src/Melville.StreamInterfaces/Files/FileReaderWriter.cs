@@ -1,5 +1,6 @@
 ﻿using Melville.IntersectionTypes;
 using Melville.StreamInterfaces.Memory;
+using Melville.StreamInterfaces.Mixins;
 using Microsoft.Win32.SafeHandles;
 using System;
 using System.IO;
@@ -13,20 +14,40 @@ namespace Melville.StreamInterfaces.Files;
 /// <summary>
 /// This is the base of the file stream classes, and implements seek, length, and position
 /// </summary>
-/// <param name="handle">Windows file handle corresponding to the file.</param>
-public class FileStreamBase(SafeFileHandle handle): RandomAccessSeekableStreamBase,
+public class FileStreamBase: RandomAccessSeekableStreamBase,
     IStreamLength, IDisposable
 {
     /// <summary>
+    /// Create a FileStreamBase
+    /// </summary>
+    /// <param name="handle">the desired handle for the stream.</param>
+    protected FileStreamBase(SafeFileHandle handle)
+    {
+        this.handle = handle;
+        RequireDisposal.ReportCreation(this);
+    }
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        RequireDisposal.ReportDisposal(this);
+        GC.SuppressFinalize(this);
+        handle.Dispose();
+    }
+
+    /// <summary>
+    /// Finalize the FileStreamBase -- to make sure it is disposed.
+    /// </summary>
+    ~FileStreamBase() => RequireDisposal.ReportMissedDispose(this);
+
+    /// <summary>
     /// A windows file handle representing the file.
     /// </summary>
-    protected internal readonly SafeFileHandle handle = handle;
+    protected internal readonly SafeFileHandle handle;
 
     /// <inheritdoc/>
     public long Length => RandomAccess.GetLength(handle);
-    /// <inheritdoc/>
-    public void Dispose() => handle.Dispose();
-
+ 
     internal readonly struct FileStreamRead (FileStreamBase self): IAsyncReader, ISyncReader
     {
         /// <summary>
