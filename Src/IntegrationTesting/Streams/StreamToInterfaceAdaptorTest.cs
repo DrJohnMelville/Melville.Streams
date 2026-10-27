@@ -23,6 +23,21 @@ public class StreamToInterfaceAdaptorTest
     }
 
     [Test]
+    public void DoNotDisposeUnlessToldTo()
+    {
+        sut.Dispose();
+        inner.Dispose(Arg.Any()).WasNeverCalled();
+    }
+    [Test]
+    public void DisposeWhenToldTo()
+    {
+        var sut2 = inner.Object.AsStreamReader(true);
+        inner.Dispose(Arg.Any()).WasNeverCalled();
+        sut2.Dispose();
+        inner.Dispose(Arg.Any()).WasCalled(Times.Once);
+    }
+
+    [Test]
     public void SyncReadTest()
     {
         inner.Read(RefStructArg<Span<byte>>.Any).Returns(123);

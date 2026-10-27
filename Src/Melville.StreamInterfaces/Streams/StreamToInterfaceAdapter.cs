@@ -17,29 +17,29 @@ public static class StreamToInterfaceMethods
     extension(Stream inner)
     {
         /// <summary>
-        /// Requests an IStream wrapping the current stream for syncrhonous and Asynchronous reading.
+        /// Requests an IStream wrapping the current stream for synchronous and Asynchronous reading.
         /// </summary>
-        public StreamReader AsStreamReader() => new(inner);
+        public StreamReader AsStreamReader(bool disposeInnerStream = false) => new(inner) { DisposeInnerStream = disposeInnerStream };
         /// <summary>
-        /// Requests an IStream wrapping the current stream for syncrhonous and Asynchronous writing.
+        /// Requests an IStream wrapping the current stream for synchronous and Asynchronous writing.
         /// </summary>
-        public StreamWriter AsStreamWriter() => new(inner);
+        public StreamWriter AsStreamWriter(bool disposeInnerStream = false) => new(inner) { DisposeInnerStream = disposeInnerStream };
         /// <summary>
-        /// Requests an IStream wrapping the current stream for syncrhonous and Asynchronous reading and writing.
+        /// Requests an IStream wrapping the current stream for synchronous and Asynchronous reading and writing.
         /// </summary>
-        public StreamReaderWriter AsStreamReaderWriter() => new(inner);
+        public StreamReaderWriter AsStreamReaderWriter(bool disposeInnerStream = false) => new(inner) { DisposeInnerStream = disposeInnerStream };
         /// <summary>
-        /// Requests an IStream wrapping the current stream for syncrhonous and Asynchronous reading and seeking.
+        /// Requests an IStream wrapping the current stream for synchronous and Asynchronous reading and seeking.
         /// </summary>
-        public SeekableStreamReader AsSeekableStreamReader() => new(inner);
+        public SeekableStreamReader AsSeekableStreamReader(bool disposeInnerStream = false) => new(inner) { DisposeInnerStream = disposeInnerStream };
         /// <summary>
-        /// Requests an IStream wrapping the current stream for syncrhonous and Asynchronous writing and seeking.
+        /// Requests an IStream wrapping the current stream for synchronous and Asynchronous writing and seeking.
         /// </summary>
-        public SeekableStreamWriter AsSeekableStreamWriter() => new(inner);
+        public SeekableStreamWriter AsSeekableStreamWriter(bool disposeInnerStream = false) => new(inner) { DisposeInnerStream = disposeInnerStream };
         /// <summary>
-        /// Requests an IStream wrapping the current stream for syncrhonous and Asynchronous reading and writing, and seeking.
+        /// Requests an IStream wrapping the current stream for synchronous and Asynchronous reading and writing, and seeking.
         /// </summary>
-        public SeekableStreamReaderWriter AsSeekableStreamReaderWriter() => new(inner);
+        public SeekableStreamReaderWriter AsSeekableStreamReaderWriter(bool disposeInnerStream = false) => new(inner) { DisposeInnerStream = disposeInnerStream };
     }
 }
 
@@ -47,7 +47,7 @@ public static class StreamToInterfaceMethods
 /// Base class for the adaptors that wrap a Stream into an IStream type.
 /// </summary>
 public abstract class StreamToInterfaceAdapter :
-    IStreamPosition, IStreamLength
+    IStreamPosition, IStreamLength, IDisposable
 {
     private readonly Stream inner;
     ///<inheritdoc/>
@@ -55,6 +55,8 @@ public abstract class StreamToInterfaceAdapter :
 
     ///<inheritdoc/>
     public long Length => inner.Length;
+
+    internal bool DisposeInnerStream { get; set; }
 
     /// <summary>
     /// Create a StreamToInterface adapter, throwing if the required capabilities are not reported by
@@ -77,6 +79,8 @@ public abstract class StreamToInterfaceAdapter :
         if (requested && !supported)
             throw new InvalidOperationException(errorMessage);
     }
+
+    
 
     internal readonly struct Readers(StreamToInterfaceAdapter self): ISyncReader, IAsyncReader
     {
@@ -117,6 +121,11 @@ public abstract class StreamToInterfaceAdapter :
             new(self.inner.WriteAsync(buffer, position, length, cancellation));
     }
 
+    ///<inheritdoc/>
+    public void Dispose()
+    {
+        if (DisposeInnerStream) inner.Dispose();
+    }
 }
 
 /// <summary>
