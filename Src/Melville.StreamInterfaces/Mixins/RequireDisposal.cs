@@ -14,6 +14,11 @@ namespace Melville.StreamInterfaces.Mixins;
 public static class RequireDisposal
 {
     /// <summary>
+    /// This lets clients register a method to get the name of the currently executing test
+    /// </summary>
+    public static Func<string> TestNameIdentifier { get; set; } = () => "No Test Identifier has been registered.";
+
+    /// <summary>
     /// throw an exception if the object is not disposed.
     /// </summary>
     public static bool ThrowOnMissedDispose { get; set; }
@@ -48,7 +53,11 @@ public static class RequireDisposal
     public static void ReportMissedDispose(IDisposable item)
     {
         if (ThrowOnMissedDispose)
-            throw new InvalidOperationException($"Object not disposed. {item}.\r\n{GetCreation(item)}");
+            throw new InvalidOperationException($"""
+                Object not disposed. {item}.
+                Test executing: {TestNameIdentifier()}
+                {GetCreation(item)}
+                """);
 
         // otherwise
         item.Dispose();

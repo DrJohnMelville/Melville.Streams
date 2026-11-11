@@ -270,7 +270,8 @@ public partial class ParsingBuffer: IDisposable
         else if (
             firstByte + desiredSize > bufferLength ||
             firstByte > bufferLength / 2 ||
-            CurrentLength < 17)
+            CurrentLength < 17 ||
+            bufferLength - nextByteSpace < 1)
         {
             CycleToFrontOfBuffer();
         }
