@@ -268,7 +268,8 @@ public partial class ParsingBuffer: IDisposable
             ResetToNewBuffer();
         }
         else if (
-            firstByte + desiredSize > bufferLength ||
+            // No room after the data for the bytes wanted, or for even one more byte: reading would get an empty slice.
+            firstByte + Math.Max(desiredSize, CurrentLength + 1) > bufferLength ||
             firstByte > bufferLength / 2 ||
             CurrentLength < 17 ||
             bufferLength - nextByteSpace < 1)

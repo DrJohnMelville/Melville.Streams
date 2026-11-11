@@ -26,6 +26,27 @@ public class FakeRead : IAsyncReader
     }
 }
 
+public class ParsingBufferFullBufferTest
+{
+    // A full buffer whose data no longer starts at the front (after an Advance) has no room at the end. Reading more
+    // must first move the data to the front; it used to read into an empty slice and throw ArgumentException
+    // ("minimumBytes should be between 0 and 0 but is 1"), seen on PDF content streams with very long strings.
+    [Test]
+    public async Task ReadAfterAdvanceInAFullBufferAsync()
+    {
+        var source = new FakeRead { Length = 4096 };
+        using var sut = new ParsingBuffer(source, 64);
+        await sut.ReadBytesAsync();
+        var capacity = sut.Peek().Length; // the whole rented buffer is now full
+        await sut.AdvanceAsync(2);
+
+        var read = await sut.ReadBytesAsync();
+
+        read.Should().BeGreaterThan(0);
+        sut.Peek().Length.Should().Be(capacity - 2 + read);
+    }
+}
+
 public class ParsingBufferTest : IDisposable
 {
     private readonly FakeRead source = new();
